@@ -1,0 +1,2929 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Seerecht Muster Prüfung</title>
+<meta name="description" content="Trainer für 30 Musterprüfungsfragen Schifffahrtsrecht des Sportseeschifferscheins.">
+<meta name="theme-color" content="#0A121C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SeeMuPr">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* ==========================================================================
+   Seerecht Muster Prüfung
+   Gestaltung und Programm übernommen aus „SSS Seemannschaft 25 Fragen“.
+   Farbwelt: Positionslichter bei Nacht. Backbordrot, Steuerbordgrün,
+   Topplichtweiss auf Nachtsee. Zahlen laufen im Monospace.
+   ========================================================================== */
+
+:root{
+  --sea-900:#0A121C;
+  --sea-850:#0E1927;
+  --sea-800:#132335;
+  --sea-700:#1B3149;
+  --line:#25405C;
+  --line-soft:#1A2C40;
+
+  --fog:#C6D3E0;
+  --fog-dim:#7E93A9;
+  --white-light:#F1F6FB;
+
+  --stbd:#3CC28C;         /* Steuerbord: richtig */
+  --stbd-dim:#16382C;
+  --port:#E8555E;         /* Backbord: falsch */
+  --port-dim:#3D1A20;
+  --brass:#D8A544;        /* teilweise, Hinweise */
+  --brass-dim:#3A2E14;
+
+  --r:14px;
+  --tap:44px;
+
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+}
+
+*{box-sizing:border-box}
+/* Muss vor allen display-Regeln stehen, sonst fangen ausgeblendete Overlays Klicks ab. */
+[hidden]{display:none!important}
+html,body{margin:0;padding:0}
+body{
+  background:var(--sea-900);
+  color:var(--fog);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow-wrap:break-word;
+}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.skiplink{position:absolute;left:-9999px;top:0;background:var(--brass);color:#1A1204;padding:10px 14px;z-index:60;border-radius:0 0 8px 0}
+.skiplink:focus{left:0}
+
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:6px}
+
+/* ---------- Kopfzeile ---------- */
+.top{position:sticky;top:0;z-index:30;background:var(--sea-900);padding-top:env(safe-area-inset-top)}
+.top-row{display:flex;align-items:center;gap:6px;padding:8px 10px;max-width:660px;margin:0 auto}
+.brand{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding-left:4px}
+.brand-name{font-size:.82rem;font-weight:650;letter-spacing:.10em;text-transform:uppercase;color:var(--white-light)}
+.crumb{font-size:.72rem;color:var(--fog-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Signatur: die drei Positionslichter als Horizontlinie */
+.horizon{display:flex;height:2px}
+.horizon i{flex:1}
+.horizon .port{background:linear-gradient(90deg,var(--port),rgba(232,85,94,.15))}
+.horizon .mast{background:rgba(241,246,251,.30);flex:.5}
+.horizon .stbd{background:linear-gradient(90deg,rgba(60,194,140,.15),var(--stbd))}
+
+.icon-btn{
+  min-width:var(--tap);min-height:var(--tap);
+  display:grid;place-items:center;
+  background:none;border:0;color:var(--fog-dim);cursor:pointer;border-radius:10px;padding:0;
+}
+.icon-btn:hover{color:var(--white-light);background:var(--sea-800)}
+.icon-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Layout ---------- */
+main{max-width:640px;margin:0 auto;padding:20px 16px 96px}
+.screen{animation:rise .28s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.h-display{
+  font-size:clamp(2rem,9vw,2.9rem);line-height:1.03;margin:8px 0 12px;
+  color:var(--white-light);font-weight:680;letter-spacing:-.025em;
+}
+.h-section{font-size:1.18rem;margin:0;color:var(--white-light);font-weight:640;letter-spacing:-.01em}
+.lede{color:var(--fog-dim);margin:0 0 26px;font-size:.95rem}
+.eyebrow{
+  font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--fog-dim);margin:0 0 10px;font-weight:640;
+}
+
+/* ---------- Auswahlkacheln ---------- */
+.choices{display:grid;gap:8px;margin-bottom:28px}
+.choices.row4{grid-template-columns:repeat(4,1fr)}
+.choice{
+  display:flex;flex-direction:column;gap:3px;text-align:left;
+  min-height:var(--tap);padding:13px 15px;
+  background:var(--sea-850);border:1px solid var(--line-soft);border-radius:var(--r);
+  color:var(--fog);cursor:pointer;font:inherit;transition:border-color .15s,background .15s;
+}
+.choices.row4 .choice{align-items:center;text-align:center;padding:14px 4px}
+.choice:hover{border-color:var(--line)}
+.choice[aria-checked="true"]{border-color:var(--stbd);background:var(--sea-800)}
+.choice-title{color:var(--white-light);font-weight:620;font-size:.98rem}
+.choices.row4 .choice-title{font-family:var(--mono);font-size:1.35rem;font-weight:600;line-height:1.1}
+.choice-sub{font-size:.8rem;color:var(--fog-dim);line-height:1.35}
+
+/* ---------- Knöpfe ---------- */
+.cta{
+  display:block;width:100%;min-height:52px;margin-top:8px;
+  background:var(--stbd);color:#04150E;border:0;border-radius:var(--r);
+  font:inherit;font-weight:680;font-size:1rem;cursor:pointer;transition:filter .15s,opacity .15s;
+}
+.cta:hover{filter:brightness(1.08)}
+.cta:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.ghost{
+  display:block;width:100%;min-height:var(--tap);margin-top:8px;
+  background:none;color:var(--fog-dim);border:1px solid var(--line-soft);border-radius:var(--r);
+  font:inherit;font-size:.92rem;cursor:pointer;
+}
+.ghost:hover{color:var(--white-light);border-color:var(--line)}
+.ghost:disabled{opacity:.45;cursor:not-allowed}
+.ghost:disabled:hover{color:var(--fog-dim);border-color:var(--line-soft)}
+.ghost.danger:hover{color:var(--port);border-color:var(--port)}
+.ghost.brass{color:var(--brass);border-color:rgba(216,165,68,.45)}
+.ghost.brass:hover{border-color:var(--brass);color:var(--brass)}
+.ghost.nochmals{margin-top:22px}
+.ghost.nochmals[aria-pressed="true"]{color:var(--stbd);border-color:var(--stbd);background:var(--stbd-dim)}
+.ghost.nochmals[aria-pressed="true"]::before{content:"✓ "}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.textlink{background:none;border:0;padding:6px 0;margin-top:14px;color:var(--fog-dim);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}
+.textlink:hover{color:var(--white-light)}
+
+/* ---------- Fortschrittsbalken der Runde ---------- */
+.meter{height:3px;background:var(--line-soft);border-radius:2px;overflow:hidden;margin-bottom:22px}
+.meter i{display:block;height:100%;background:var(--stbd);width:0;transition:width .3s ease}
+
+/* ---------- Fragekopf ---------- */
+.plate-label{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--fog-dim);margin:0 0 8px;font-family:var(--mono)}
+.plate-label .wdh{color:var(--brass)}
+.q-name{font-size:clamp(1.3rem,5.2vw,1.65rem);line-height:1.25;color:var(--white-light);font-weight:640;margin:0;letter-spacing:-.015em}
+
+.answer-area{margin-top:22px}
+textarea#antwort{
+  width:100%;min-height:140px;padding:12px 14px;
+  background:var(--sea-900);border:1px solid var(--line);border-radius:10px;
+  color:var(--white-light);font:inherit;font-size:1rem;line-height:1.55;
+  resize:vertical;display:block;
+}
+textarea#antwort::placeholder{color:#5B6E82}
+textarea#antwort:focus{border-color:var(--stbd);outline:none}
+textarea#antwort[readonly]{border-color:var(--line-soft);color:var(--fog);cursor:default;min-height:0;resize:none;overflow:hidden}
+.kbd-hint{margin:6px 0 0;font-size:.74rem;color:#5B6E82;text-align:right}
+
+.hint-note{
+  display:flex;gap:10px;align-items:flex-start;
+  margin:10px 0 0;padding:10px 12px;border-radius:10px;
+  background:linear-gradient(var(--brass-dim),var(--sea-850));border:1px solid rgba(216,165,68,.4);
+  font-size:.9rem;color:var(--fog);
+}
+.hint-note b{color:var(--brass);font-weight:640;flex:none}
+
+/* ---------- Rückmeldung ---------- */
+.verdict{
+  display:flex;align-items:flex-start;gap:12px;
+  margin-top:18px;padding:14px 12px 14px 14px;
+  border:1px solid var(--line-soft);border-radius:var(--r);background:var(--sea-850);
+}
+.verdict.ok{border-color:var(--stbd);background:linear-gradient(var(--stbd-dim),var(--sea-850))}
+.verdict.no{border-color:var(--port);background:linear-gradient(var(--port-dim),var(--sea-850))}
+.verdict.skip{border-color:var(--brass);background:linear-gradient(var(--brass-dim),var(--sea-850))}
+/* Die Lampe ist Sektorlicht, nicht blosser Punkt */
+.lamp{width:14px;height:14px;border-radius:50%;flex:none;margin-top:4px;background:var(--fog-dim)}
+.verdict.ok .lamp{background:var(--stbd);box-shadow:0 0 0 4px rgba(60,194,140,.16)}
+.verdict.no .lamp{background:var(--port);box-shadow:0 0 0 4px rgba(232,85,94,.16)}
+.verdict.skip .lamp{background:var(--brass);box-shadow:0 0 0 4px rgba(216,165,68,.16)}
+.verdict-text{flex:1;min-width:0}
+.verdict-head{margin:0;font-weight:660;color:var(--white-light);font-size:1rem}
+.verdict-head:focus{outline:none}
+.verdict-sub{margin:3px 0 0;font-size:.88rem;color:var(--fog-dim)}
+.verdict-sub b{color:var(--fog);font-weight:620}
+
+.sub-eyebrow{margin-top:22px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.chip{
+  font-size:.83rem;padding:5px 10px;border-radius:999px;
+  background:var(--sea-800);border:1px solid var(--line-soft);color:var(--fog);
+}
+.chip.hit{border-color:var(--stbd);color:var(--stbd);background:rgba(60,194,140,.08)}
+.chip.fehlt{opacity:.55}
+.chip i{font-style:normal;margin-right:5px}
+.chip .pf{font-family:var(--mono);color:var(--brass);margin-left:4px;font-size:.75rem}
+.chip.hit .pf{color:var(--stbd)}
+
+/* ---------- Musterlösung ---------- */
+.loesung{
+  background:var(--sea-850);border:1px solid var(--line-soft);border-left:3px solid var(--stbd);
+  border-radius:0 var(--r) var(--r) 0;padding:14px 16px;
+}
+.loesung p{margin:0 0 8px;font-size:.95rem;color:var(--fog);line-height:1.6}
+.loesung ul{margin:0 0 8px;padding-left:20px;display:grid;gap:6px}
+.loesung li{font-size:.95rem;color:var(--fog);line-height:1.5}
+.loesung li::marker{color:var(--brass)}
+.anmerkung{margin:10px 0 0;font-size:.85rem;color:var(--brass);line-height:1.45}
+.anmerkung b{font-weight:640}
+
+/* ---------- Ergebnis ---------- */
+.score{font-size:clamp(2.8rem,14vw,3.8rem);line-height:1;color:var(--white-light);margin:10px 0 8px;font-weight:600}
+.tally{display:flex;align-items:baseline;gap:9px;margin:4px 0 6px;flex-wrap:wrap}
+.tally-num{font-family:var(--mono);font-size:1.5rem;color:var(--white-light);font-weight:600;line-height:1}
+.tally-pct{font-size:.9rem;color:var(--fog-dim)}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 26px}
+.fact{font-size:.8rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line-soft);color:var(--fog-dim);background:var(--sea-850)}
+.fact b{font-family:var(--mono);color:var(--white-light);font-weight:600;margin-right:4px}
+
+.misslist{margin:6px 0 24px;display:grid;gap:6px}
+.miss{
+  display:flex;gap:12px;align-items:baseline;padding:11px 13px;width:100%;text-align:left;
+  background:var(--sea-850);border:0;border-left:3px solid var(--port);border-radius:0 10px 10px 0;
+  color:var(--fog);font:inherit;cursor:pointer;
+}
+.miss:hover{background:var(--sea-800)}
+.miss.later{border-left-color:var(--brass)}
+.miss b{font-family:var(--mono);color:var(--white-light);flex:none;font-weight:600;min-width:2ch;text-align:right}
+.miss span{font-size:.9rem;color:var(--fog);line-height:1.35;flex:1;min-width:0}
+.miss small{display:block;font-size:.74rem;color:var(--fog-dim);margin-top:2px}
+.miss.later small{color:var(--brass)}
+
+/* ---------- Fragenliste ---------- */
+input#suche{
+  width:100%;min-height:var(--tap);padding:12px 14px;
+  background:var(--sea-900);border:1px solid var(--line);border-radius:10px;
+  color:var(--white-light);font:inherit;font-size:1rem;
+}
+input#suche::placeholder{color:#5B6E82}
+input#suche:focus{border-color:var(--stbd);outline:none}
+.such-zahl{margin:12px 0 14px;font-size:.8rem;color:var(--fog-dim);font-family:var(--mono)}
+.such-zeile{
+  display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;
+  margin-bottom:8px;padding:13px 15px;
+  background:var(--sea-850);border:1px solid var(--line-soft);border-radius:var(--r);
+  color:var(--fog);cursor:pointer;font:inherit;transition:border-color .15s;
+}
+.such-zeile:hover{border-color:var(--line)}
+.such-zeile b{font-family:var(--mono);color:var(--fog-dim);font-weight:600;flex:none;min-width:2ch;text-align:right;font-size:.85rem}
+.such-zeile span{color:var(--white-light);font-size:.94rem;line-height:1.35}
+
+/* ---------- Panels ---------- */
+.sheet-wrap{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet-scrim{position:absolute;inset:0;background:rgba(4,9,15,.7);animation:fade .2s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{
+  position:relative;width:100%;max-width:640px;max-height:88vh;
+  background:var(--sea-850);border:1px solid var(--line-soft);border-bottom:0;
+  border-radius:20px 20px 0 0;display:flex;flex-direction:column;
+  animation:slide .26s cubic-bezier(.22,.9,.3,1) both;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@keyframes slide{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-grab{height:22px;flex:none;cursor:pointer;display:grid;place-items:center;background:none;border:0;width:100%}
+.sheet-grab::after{content:"";width:38px;height:4px;border-radius:2px;background:var(--line)}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:6px 16px 12px;border-bottom:1px solid var(--line-soft)}
+.sheet-head .plate-label{margin-bottom:4px}
+.sheet-head .h-section{font-size:1.02rem;line-height:1.35}
+.sheet-body{padding:16px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.sheet-body .loesung{background:var(--sea-900)}
+.sheet-body .eyebrow{font-size:.68rem;color:var(--fog-dim);margin:4px 0 10px}
+.sheet-body .eyebrow.sub-eyebrow{margin-top:22px}
+.eigene{margin:0 0 20px;padding:12px 14px;border-radius:10px;border:1px dashed var(--line);background:var(--sea-900);font-size:.92rem;color:var(--fog);white-space:pre-wrap}
+.eigene.leer{color:var(--fog-dim);font-style:italic}
+
+.help-h{color:var(--white-light);font-size:.95rem;margin:22px 0 6px;font-weight:640}
+.help-h:first-child{margin-top:0}
+.sheet-body p{margin:0 0 10px;font-size:.92rem;color:var(--fog-dim)}
+.sheet-body p strong{color:var(--fog)}
+.sheet-body .loesung p{color:var(--fog);margin:0}
+.keyline{border:0;border-top:1px solid var(--line-soft);margin:20px 0}
+.sheet-actions{padding:4px 16px 18px}
+
+/* ---------- Hinweis unten ---------- */
+.toast{
+  position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:60;background:var(--sea-700);border:1px solid var(--line);color:var(--white-light);
+  padding:11px 17px;border-radius:999px;font-size:.88rem;animation:fade .2s ease both;max-width:92vw;text-align:center;
+}
+
+@media (min-width:520px){
+  .choices.row4 .choice{padding:16px 6px}
+}
+@media (max-width:359px){
+  .choices.row4{grid-template-columns:repeat(2,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.q-name,#sheet-loesung-titel{white-space:pre-line}
+.loesung>:last-child{margin-bottom:0}
+</style>
+</head>
+<body>
+
+<a class="skiplink" href="#inhalt">Zum Inhalt springen</a>
+
+<header class="top">
+  <div class="top-row">
+    <button class="icon-btn" id="btn-zurueck" type="button" title="Zurück" aria-label="Zurück" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <span class="brand">
+      <span class="brand-name">Seerecht Muster Prüfung</span>
+      <span class="crumb" id="crumb">30 Fragen</span>
+    </span>
+    <button class="icon-btn" id="btn-liste" type="button" title="Alle Fragen" aria-label="Alle Fragen">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-info" type="button" title="Info" aria-label="Info">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>
+    </button>
+  </div>
+  <div class="horizon" aria-hidden="true"><i class="port"></i><i class="mast"></i><i class="stbd"></i></div>
+</header>
+
+<main id="inhalt">
+
+  <!-- ---------- Start ---------- -->
+  <section class="screen" id="screen-start">
+    <p class="eyebrow">Sportseeschifferschein · Schifffahrtsrecht</p>
+    <h1 class="h-display">Seerecht Muster Prüfung</h1>
+    <p class="lede">30 Prüfungsfragen zu KVR, SeeSchStrO, Schiffspapieren und SUG in zufälliger Reihenfolge. Antwort frei formulieren, prüfen lassen und mit der Musterlösung vergleichen. Falsche Antworten kommen später nochmals.</p>
+
+    <p class="eyebrow" id="groesse-label">Rundengrösse</p>
+    <div class="choices row4" id="groesse-choices" role="radiogroup" aria-labelledby="groesse-label"></div>
+
+    <button class="cta" id="btn-start" type="button">Runde starten</button>
+    <button class="ghost" id="btn-liste-2" type="button">Alle Fragen ansehen</button>
+    <button class="textlink" id="btn-info-2" type="button">So wird bewertet</button>
+  </section>
+
+  <!-- ---------- Frage ---------- -->
+  <section class="screen" id="screen-frage" hidden>
+    <div class="meter" role="progressbar" aria-label="Fortschritt der Runde" aria-valuemin="0" aria-valuemax="100" id="meter"><i id="meter-fill"></i></div>
+
+    <p class="plate-label" id="frage-label">Frage</p>
+    <h2 class="q-name" id="frage-text" tabindex="-1"></h2>
+
+    <div class="answer-area">
+      <label class="sr-only" for="antwort">Ihre Antwort</label>
+      <textarea id="antwort" rows="6" placeholder="Antwort frei formulieren. Stichworte genügen, Fachbegriffe zählen." autocomplete="off" autocapitalize="sentences" spellcheck="true"></textarea>
+      <p class="kbd-hint" id="kbd-hint">Strg + Enter prüft</p>
+      <p class="hint-note" id="hinweis-note" hidden><b>Hinweis</b><span id="hinweis-text"></span></p>
+
+      <div id="frage-aktionen">
+        <button class="cta" id="btn-pruefen" type="button" disabled>Prüfen</button>
+        <div class="btn-row">
+          <button class="ghost" id="btn-hinweis" type="button">Hinweis</button>
+          <button class="ghost" id="btn-loesen" type="button">Lösen</button>
+        </div>
+        <button class="ghost" id="btn-ueberspringen" type="button">Überspringen</button>
+      </div>
+    </div>
+
+    <!-- Auswertung -->
+    <div id="auswertung" hidden>
+      <div class="verdict" id="verdict" aria-live="polite">
+        <span class="lamp" aria-hidden="true"></span>
+        <span class="verdict-text">
+          <p class="verdict-head" id="verdict-head" tabindex="-1"></p>
+          <p class="verdict-sub" id="verdict-sub"></p>
+        </span>
+      </div>
+      <button class="ghost brass" id="btn-doch" type="button" hidden>Doch richtig</button>
+
+      <p class="eyebrow sub-eyebrow">Schlüsselelemente</p>
+      <div class="chips" id="element-chips"></div>
+
+      <p class="eyebrow sub-eyebrow">Musterlösung</p>
+      <div class="loesung" id="loesung-box"></div>
+      <p class="anmerkung" id="loesung-anmerkung" hidden></p>
+
+      <button class="ghost nochmals" id="btn-nochmals" type="button" aria-pressed="false" hidden>Nochmals fragen</button>
+      <button class="cta" id="btn-weiter" type="button" style="margin-top:22px">Weiter</button>
+    </div>
+  </section>
+
+  <!-- ---------- Ergebnis ---------- -->
+  <section class="screen" id="screen-ergebnis" hidden>
+    <p class="eyebrow" id="ergebnis-eyebrow">Runde beendet</p>
+    <h2 class="h-section">Ergebnis</h2>
+    <p class="score mono" id="ergebnis-score">0 %</p>
+    <div class="tally">
+      <span class="tally-num" id="ergebnis-zahl">0/0</span>
+      <span class="tally-pct">beim ersten Versuch richtig</span>
+    </div>
+    <div class="facts" id="ergebnis-facts"></div>
+    <p class="eyebrow" id="miss-eyebrow" hidden>Noch einmal ansehen</p>
+    <div class="misslist" id="misslist"></div>
+    <button class="cta" id="btn-fehler" type="button">Fehler nochmals üben</button>
+    <button class="ghost" id="btn-neu" type="button">Neue Runde</button>
+    <button class="ghost" id="btn-zum-start" type="button">Zur Startseite</button>
+  </section>
+
+  <!-- ---------- Alle Fragen ---------- -->
+  <section class="screen" id="screen-liste" hidden>
+    <p class="eyebrow">Ohne Abfrage</p>
+    <h2 class="h-section">Alle Fragen</h2>
+    <p class="lede">Sucht in Fragen und Musterlösungen. Antippen zeigt die Lösung.</p>
+    <label class="sr-only" for="suche">Suchbegriff</label>
+    <input id="suche" type="search" placeholder="z. B. Fahrwasser, Anker, Promille" autocomplete="off">
+    <p class="such-zahl" id="such-zahl" aria-live="polite"></p>
+    <div id="such-treffer"></div>
+  </section>
+
+</main>
+
+<!-- ---------- Panel: Lösung ---------- -->
+<div class="sheet-wrap" id="sheet-loesung" hidden>
+  <div class="sheet-scrim" data-schliessen></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-loesung-titel">
+    <button class="sheet-grab" type="button" data-schliessen aria-label="Schliessen"></button>
+    <div class="sheet-head">
+      <div>
+        <p class="plate-label" id="sheet-loesung-nr">Frage</p>
+        <h3 class="h-section" id="sheet-loesung-titel"></h3>
+      </div>
+      <button class="icon-btn" type="button" data-schliessen aria-label="Schliessen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body" id="sheet-loesung-body"></div>
+  </div>
+</div>
+
+<!-- ---------- Panel: Info ---------- -->
+<div class="sheet-wrap" id="sheet-info" hidden>
+  <div class="sheet-scrim" data-schliessen></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-info-titel">
+    <button class="sheet-grab" type="button" data-schliessen aria-label="Schliessen"></button>
+    <div class="sheet-head">
+      <div>
+        <p class="plate-label">Info</p>
+        <h3 class="h-section" id="sheet-info-titel">So funktioniert die App</h3>
+      </div>
+      <button class="icon-btn" type="button" data-schliessen aria-label="Schliessen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <p class="help-h">Bewertung</p>
+      <p>Jede Frage hat feste Schlüsselelemente. Die App sucht sie in Ihrer Antwort, auch in anderer Wortform, in zusammengesetzten Wörtern und mit kleinen Tippfehlern. Umlaute, ß und Gross- und Kleinschreibung spielen keine Rolle.</p>
+      <p><strong>Richtig</strong>: alle Pflichtpunkte (★) und genügend Elemente erkannt. <strong>Teilweise</strong>: mindestens die Hälfte. <strong>Falsch</strong>: weniger.</p>
+      <p>Die Automatik erkennt Begriffe, keine Begründungen. Wenn sie sich irrt, werten Sie die Antwort mit „Doch richtig“ selbst.</p>
+
+      <p class="help-h">Wiederholung</p>
+      <p>Falsch, teilweise, gelöst oder übersprungen: Die Frage kommt nach frühestens drei anderen Fragen wieder, höchstens zweimal. Danach bleibt sie offen und erscheint im Ergebnis.</p>
+      <p>Richtig beantwortet: Mit „Nochmals fragen“ kommt die Frage nach drei bis sechs anderen Fragen nochmals, so oft Sie möchten. Sie zählt weiter als beim ersten Mal richtig. Wird sie bei der Wiederholung nicht richtig beantwortet, gelten die normalen Regeln.</p>
+
+      <p class="help-h">Tastatur</p>
+      <p>Strg + Enter (Mac: Cmd + Enter) prüft die Antwort und geht danach weiter.</p>
+
+      <hr class="keyline">
+      <p class="help-h">Als App installieren</p>
+      <p><strong>iPhone/iPad</strong>: in Safari Teilen → „Zum Home-Bildschirm“. <strong>Android</strong>: in Chrome Menü → „App installieren“. <strong>Desktop</strong>: Installations-Symbol in der Adresszeile.</p>
+      <p id="offline-status"></p>
+
+      <hr class="keyline">
+      <p class="help-h">Datengrundlage</p>
+      <p>Eigene Sammlung von Musterprüfungsfragen zum Schifffahrtsrecht (KVR, SeeSchStrO, Schiffspapiere, SUG). Fragen und Musterlösungen sind sprachlich vereinheitlicht. Frage 27 enthält eine Anmerkung zur Abgrenzung von KVR und SeeSchStrO.</p>
+      <p>Kein Server, keine Anmeldung, keine Übertragung. Gespeichert wird nur die zuletzt gewählte Rundengrösse in diesem Browser.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Panel: Runde beenden ---------- -->
+<div class="sheet-wrap" id="sheet-beenden" hidden>
+  <div class="sheet-scrim" data-schliessen></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-beenden-titel">
+    <button class="sheet-grab" type="button" data-schliessen aria-label="Schliessen"></button>
+    <div class="sheet-head">
+      <div>
+        <p class="plate-label">Runde</p>
+        <h3 class="h-section" id="sheet-beenden-titel">Runde beenden?</h3>
+      </div>
+    </div>
+    <div class="sheet-body">
+      <p>Bisherige Antworten werden ausgewertet. Nicht gestellte Fragen zählen nicht mit.</p>
+      <button class="cta" id="btn-beenden-ja" type="button">Beenden und auswerten</button>
+      <button class="ghost" type="button" data-schliessen>Weiter üben</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script id="fragen-daten" type="application/json">
+[
+  {
+    "id": "f01",
+    "nummer": 1,
+    "frage": "Erläutern Sie die Begriffe „Vorfahrt“ und „Durchgehende Schifffahrt“.",
+    "loesung": [
+      "Vorfahrt (SeeSchStrO § 25 „Vorfahrt der Schifffahrt im Fahrwasser“): Spezielle Abweichung von KVR-Regel 9 b)–d), 15 und 18. Im Fahrwasser haben dem Fahrwasserverlauf folgende Fahrzeuge unabhängig davon, ob sie nur innerhalb des Fahrwassers sicher fahren können, Vorfahrt gegenüber Fahrzeugen, die",
+      "- in das Fahrwasser einlaufen,",
+      "- das Fahrwasser queren,",
+      "- im Fahrwasser drehen,",
+      "- ihre Anker- oder Liegeplätze verlassen.",
+      "Durchgehende Schifffahrt: Alle Fahrzeuge, die deutlich dem Fahrwasserverlauf einer Seeschifffahrtsstraße folgen. Nach allgemeiner Verkehrsauffassung ist eine Abweichung von höchstens ±10° von der Richtung des Fahrwassers erlaubt."
+    ],
+    "hinweis": "Wer hat im Fahrwasser Vorrang, gegenüber wem – und wie stark darf man vom Fahrwasserkurs abweichen?",
+    "mindestanzahl": 4,
+    "elemente": [
+      {
+        "label": "Vorfahrt für Fahrzeuge, die dem Fahrwasser folgen",
+        "pflicht": true,
+        "treffer": [
+          "fahrwasserverlauf",
+          "dem fahrwasser folgen",
+          "fahrwasser folgt",
+          "im fahrwasser",
+          "fahrwasser fahren"
+        ]
+      },
+      {
+        "label": "Gegenüber Einlaufenden und Querenden",
+        "treffer": [
+          "einlaufen",
+          "einläuft",
+          "einfahren",
+          "queren",
+          "quert",
+          "kreuzen"
+        ]
+      },
+      {
+        "label": "Gegenüber Drehenden und Liegeplatz-Verlassenden",
+        "treffer": [
+          "drehen",
+          "dreht",
+          "liegeplatz",
+          "ankerplatz",
+          "ablegen",
+          "verlassen"
+        ]
+      },
+      {
+        "label": "Durchgehende Schifffahrt folgt deutlich dem Fahrwasserverlauf",
+        "pflicht": true,
+        "treffer": [
+          "deutlich folgen",
+          "deutlich folgt",
+          "verlauf folgen",
+          "richtung des fahrwassers",
+          "fahrwasserrichtung",
+          "längs",
+          "folgen",
+          "folgt"
+        ]
+      },
+      {
+        "label": "Abweichung höchstens ±10°",
+        "treffer": [
+          "=10",
+          "zehn grad",
+          "grad"
+        ]
+      },
+      {
+        "label": "§ 25 SeeSchStrO",
+        "treffer": [
+          "=25",
+          "seeschstro"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f02",
+    "nummer": 2,
+    "frage": "Nennen Sie die 3 Ausweichregeln unter Segelfahrzeugen unter Angabe der § Nr.",
+    "loesung": [
+      "KVR-Regel 12:",
+      "- 12 a) i): Bei Wind von verschiedenen Seiten weicht das Fahrzeug mit Wind von Backbord dem Fahrzeug mit Wind von Steuerbord aus.",
+      "- 12 a) ii): Bei Wind von derselben Seite weicht das luvwärtige dem leewärtigen Fahrzeug aus.",
+      "- 12 a) iii): Kann ein Fahrzeug mit Wind von Backbord nicht sicher feststellen, auf welcher Seite das Fahrzeug in Luv den Wind hat, muss es ausweichen."
+    ],
+    "hinweis": "Verschiedene Seiten, dieselbe Seite – und was gilt im Zweifel?",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Wind von Backbord weicht aus",
+        "pflicht": true,
+        "treffer": [
+          "backbord",
+          "=bb"
+        ]
+      },
+      {
+        "label": "Luv weicht Lee",
+        "pflicht": true,
+        "treffer": [
+          "=luv",
+          "luvw",
+          "luvseit",
+          "=lee",
+          "leew"
+        ]
+      },
+      {
+        "label": "Zweifelsregel: Windseite nicht feststellbar → ausweichen",
+        "pflicht": true,
+        "verneinend": true,
+        "treffer": [
+          "zweifel",
+          "nicht sicher",
+          "unsicher",
+          "nicht feststell",
+          "nicht erkenn",
+          "nicht bestimm",
+          "unklar"
+        ]
+      },
+      {
+        "label": "KVR-Regel 12",
+        "treffer": [
+          "regel 12",
+          "=12",
+          "kvr"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f03",
+    "nummer": 3,
+    "frage": "Welche Folgen können für einen Fahrzeugführer unter Alkoholeinfluss nach SeeSchStrO entstehen? Genaue Formulierung erforderlich!",
+    "loesung": [
+      "SeeSchStrO § 3 (4): Wer 0,25 mg/l oder mehr Alkohol in der Atemluft oder 0,5 Promille oder mehr Alkohol im Blut oder eine Alkoholmenge im Körper hat, die zu einer solchen Atem- oder Blutalkoholkonzentration führt, darf ein Fahrzeug nicht führen oder als Mitglied der Schiffsbesatzung eine andere Tätigkeit des Brücken-, Decks- oder Maschinendienstes nicht ausüben. Dies gilt für das Fahren mit einem Wassermotorrad oder einem Kite- und Segelsurfbrett entsprechend."
+    ],
+    "hinweis": "Zwei Grenzwerte, ein Verbot für Führer und Besatzung – und für welche Sportgeräte gilt es auch?",
+    "mindestanzahl": 5,
+    "elemente": [
+      {
+        "label": "0,25 mg/l Atemalkohol",
+        "pflicht": true,
+        "treffer": [
+          "=25",
+          "atemluft",
+          "atemalkohol",
+          "=mg"
+        ]
+      },
+      {
+        "label": "0,5 Promille Blutalkohol",
+        "pflicht": true,
+        "treffer": [
+          "promille",
+          "blutalkohol",
+          "im blut"
+        ]
+      },
+      {
+        "label": "Alkoholmenge im Körper, die dazu führt",
+        "treffer": [
+          "körper",
+          "alkoholmenge"
+        ]
+      },
+      {
+        "label": "Darf kein Fahrzeug führen",
+        "pflicht": true,
+        "verneinend": true,
+        "treffer": [
+          "nicht führen",
+          "kein fahrzeug",
+          "darf nicht",
+          "fahrverbot",
+          "verboten",
+          "verbot"
+        ]
+      },
+      {
+        "label": "Kein Brücken-, Decks- oder Maschinendienst",
+        "pflicht": true,
+        "treffer": [
+          "brücken",
+          "decks",
+          "maschinendienst",
+          "besatzung",
+          "dienst"
+        ]
+      },
+      {
+        "label": "Gilt auch für Wassermotorrad, Kite- und Segelsurfbrett",
+        "treffer": [
+          "wassermotorrad",
+          "jetski",
+          "kite",
+          "surfbrett",
+          "surf"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f04",
+    "nummer": 4,
+    "frage": "Sie kollidieren bei diesigem Wetter auf der Weser bei Bremerhaven mit einer anderen Yacht. Während Ihre Yacht nahezu unbeschädigt bleibt, scheint die andere Yacht zu sinken. Was ist in dieser Situation von den an der Kollision beteiligten Fahrzeugen nach SeeSchStrO zu unternehmen?",
+    "loesung": [
+      "- Bei Gefahr des Sinkens ist das Fahrzeug möglichst so weit aus dem Fahrwasser zu schaffen, dass die Schifffahrt nicht beeinträchtigt wird. Nach einem Zusammenstoß ist hierzu auch der Führer eines beteiligten schwimmfähig gebliebenen Fahrzeugs verpflichtet (§ 37 (1) SeeSchStrO).",
+      "- Bei Beeinträchtigung der Schifffahrt ist das örtlich zuständige Wasserstraßen- und Schifffahrtsamt (WSA) oder die Verkehrszentrale unverzüglich zu unterrichten (§ 37 (2) SeeSchStrO).",
+      "- Der Ort eines gesunkenen Fahrzeugs ist vom Fahrzeugführer unverzüglich behelfsmäßig zu bezeichnen. Nach einem Zusammenstoß ist hierzu auch der Führer eines beteiligten schwimmfähig gebliebenen Fahrzeugs verpflichtet. Er darf die Fahrt erst nach Genehmigung des zuständigen WSA fortsetzen (§ 37 (3) SeeSchStrO)."
+    ],
+    "hinweis": "§ 37 SeeSchStrO: Fahrwasser freihalten, wen informieren, was mit der Sinkstelle – und darf man einfach weiterfahren?",
+    "mindestanzahl": 4,
+    "elemente": [
+      {
+        "label": "Sinkendes Fahrzeug aus dem Fahrwasser schaffen",
+        "pflicht": true,
+        "treffer": [
+          "aus dem fahrwasser",
+          "fahrwasser räumen",
+          "fahrwasser freimachen",
+          "fahrwasser frei",
+          "freihalten",
+          "verholen",
+          "abschleppen",
+          "schleppen",
+          "aus dem weg"
+        ]
+      },
+      {
+        "label": "Auch der schwimmfähig gebliebene Beteiligte ist verpflichtet",
+        "treffer": [
+          "schwimmfähig",
+          "beteiligt",
+          "mithelfen",
+          "helfen",
+          "unterstütz",
+          "auch ich",
+          "beide"
+        ]
+      },
+      {
+        "label": "WSA oder Verkehrszentrale unverzüglich unterrichten",
+        "pflicht": true,
+        "treffer": [
+          "=wsa",
+          "wasserstraßen",
+          "schifffahrtsamt",
+          "verkehrszentrale",
+          "=vkz",
+          "melden",
+          "meldung",
+          "unterrichten",
+          "informieren",
+          "benachrichtig"
+        ]
+      },
+      {
+        "label": "Untergangsstelle behelfsmäßig bezeichnen",
+        "pflicht": true,
+        "treffer": [
+          "bezeichnen",
+          "bezeichnung",
+          "markieren",
+          "markierung",
+          "kennzeichnen",
+          "boje",
+          "fender"
+        ]
+      },
+      {
+        "label": "Weiterfahrt erst nach Genehmigung des WSA",
+        "verneinend": true,
+        "treffer": [
+          "genehmigung",
+          "erlaubnis",
+          "freigabe",
+          "weiterfahrt",
+          "nicht weiterfahren",
+          "fortsetzen"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f05",
+    "nummer": 5,
+    "frage": "Sie fahren bei verminderter Sicht den Vorschriften entsprechend mit Ihrer Yacht am Rande des Fahrwassers, um ein Nebenfahrwasser anzusteuern (z. B. auf der Elbe fahrend mit der Absicht, in die Oste einzusteuern). Beim Erreichen der Abzweigposition hören Sie das Nebelsignal: 2 Gruppen von drei langen Tönen. Nennen Sie:\n• die Bedeutung des Nebelsignals,\n• das Tagsignal, das entsprechend aufgestellt ist.",
+    "loesung": [
+      "- Bedeutung: Die Seeschifffahrtsstraße (Teilstrecke) ist gesperrt (SeeSchStrO Anlage I, Abschnitt II Schallsignale, C.4 Sperrung der Seeschifffahrtsstraße).",
+      "- Tagsignal: Rechteckige rote Tafel mit waagerechtem weißem Streifen (SeeSchStrO Anlage I, Abschnitt I Sichtzeichen, A.18 a Dauernde Sperrung)."
+    ],
+    "hinweis": "Darf man hier weiterfahren? Das Tagsignal ist eine Tafel.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Seeschifffahrtsstraße gesperrt",
+        "pflicht": true,
+        "treffer": [
+          "gesperrt",
+          "sperrung",
+          "sperre",
+          "sperrt",
+          "durchfahrt verboten"
+        ]
+      },
+      {
+        "label": "Rote rechteckige Tafel",
+        "treffer": [
+          "tafel",
+          "schild",
+          "rot",
+          "rechteck"
+        ]
+      },
+      {
+        "label": "Waagerechter weißer Streifen",
+        "pflicht": true,
+        "treffer": [
+          "waagerecht",
+          "waagrecht",
+          "streifen",
+          "balken",
+          "querstreifen",
+          "horizontal"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f06",
+    "nummer": 6,
+    "frage": "Nennen Sie das Schiffsdokument, das in der Regel dem deutschen Eigentümer eines Wassersportbootes als Nachweis des Eigentums und der Nationalität dient,\n• wenn die Rumpflänge 15 m nicht übersteigt,\n• wenn die Rumpflänge 15 m übersteigt.",
+    "loesung": [
+      "- Bis 15 m: Für nicht registrierpflichtige Wassersportfahrzeuge deutscher Eigentümer wird auf Antrag der Internationale Bootsschein für Wassersportfahrzeuge ausgestellt. Er wird von allen europäischen Ländern anerkannt, außer Frankreich; dort wird das Schiffszertifikat (oder Flaggenzertifikat) verlangt. Yachten bis 15 m können sich registrieren lassen.",
+      "- Über 15 m: Registrierpflicht. Es wird das Schiffszertifikat ausgestellt; an Bord wird ein Auszug daraus mitgeführt. Es wird uneingeschränkt als Eigentums- und Nationalitätsnachweis anerkannt.",
+      "(Quellen: SchSV, FlaggRG, BG Verkehr, Resolution Nr. 13 der UN)"
+    ],
+    "hinweis": "Unter 15 m ein „Schein“, über 15 m ein Dokument aus dem Schiffsregister.",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Bis 15 m: Internationaler Bootsschein",
+        "pflicht": true,
+        "treffer": [
+          "bootsschein",
+          "=ibs"
+        ]
+      },
+      {
+        "label": "Über 15 m: Schiffszertifikat",
+        "pflicht": true,
+        "treffer": [
+          "schiffszertifikat",
+          "zertifikat"
+        ]
+      },
+      {
+        "label": "Über 15 m registrierpflichtig",
+        "treffer": [
+          "registrier",
+          "register",
+          "eintragungspflicht"
+        ]
+      },
+      {
+        "label": "Ausnahme Frankreich",
+        "treffer": [
+          "frankreich",
+          "flaggenzertifikat"
+        ]
+      },
+      {
+        "label": "Auszug aus dem Schiffszertifikat an Bord",
+        "treffer": [
+          "auszug"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f07",
+    "nummer": 7,
+    "frage": "Nennen Sie das Schiffsdokument, das die Vermessung einer Yacht amtlich verbrieft; nennen Sie die hierfür verantwortliche Behörde.",
+    "loesung": [
+      "Die Vermessung eines Seeschiffes erfolgt durch das Bundesamt für Seeschifffahrt und Hydrographie (BSH), das hierüber den Schiffsmessbrief ausstellt."
+    ],
+    "hinweis": "Das Dokument ist ein „Brief“, die Behörde sitzt in Hamburg und Rostock.",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Schiffsmessbrief",
+        "pflicht": true,
+        "treffer": [
+          "messbrief",
+          "schiffsmessbrief",
+          "meßbrief"
+        ]
+      },
+      {
+        "label": "BSH (Bundesamt für Seeschifffahrt und Hydrographie)",
+        "pflicht": true,
+        "treffer": [
+          "=bsh",
+          "bundesamt",
+          "hydrographie",
+          "hydrografie"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f08",
+    "nummer": 8,
+    "frage": "Auf der Unterelbe segelt eine Yacht elbabwärts. Der Wind kommt 1 Strich achterlicher als querab von Stb. ein. Die Sicht ist durch auf dem Wasser liegende Nebelbänke beeinträchtigt (Mindestsichtweite ca. 500 m).\n1. Welches Nebelsignal muss man auf der Yacht geben?\n2. Aus einer Nebelbank heraus hört man anscheinend vorlicher als querab in kurzen Zwischenräumen rasches Läuten mit einer Glocke mit jeweils drei einzelnen Glockenschlägen vor und nach dem raschen Läuten. Welche Bedeutung hat dieses Signal?\n3. Was hat man auf der Yacht zu veranlassen? Wie ist das Objekt zu passieren?\n4. Weiter elbabwärts segelnd hört man im Nebel in kurzen Zwischenräumen aus vorlicher Richtung rasches Läuten mit einer Glocke. Welche Bedeutung hat dieses Signal?\n5. Nachdem dieses Objekt passiert worden ist, hört man ein Schallsignal, bestehend aus einem kurzen Ton, gefolgt von einem langen Ton, das mindestens fünfmal pro Minute wiederholt wird. Was ist das für ein Signal und wozu dient es?",
+    "loesung": [
+      "1. Lang-kurz-kurz mindestens alle 2 min (KVR-Regel 35 c).",
+      "2. Auf Grund sitzendes Fahrzeug unter 100 m Länge (KVR-Regel 35 h).",
+      "3. Fahrt weiter verringern, vorsichtig manövrieren, zur Fahrwassermitte halten (dabei darf die durchgehende Schifffahrt nicht behindert werden), am Grundsitzer „vorbeitasten“.",
+      "4. Fahrzeug vor Anker unter 100 m Länge (KVR-Regel 35 g).",
+      "5. Bleib-weg-Signal. Es warnt davor, dass auf einem Fahrzeug oder einem Schub- bzw. Schleppverband gefährliche Güter oder radioaktive Stoffe freigesetzt wurden oder drohen freigesetzt zu werden oder dass Explosionsgefahr besteht. Es fordert andere Schiffe auf, sofort Abstand zu halten und die Gefahrenzone zu meiden (SeeSchStrO Anlage II, 2.2)."
+    ],
+    "hinweis": "Segelfahrzeug im Nebel (Regel 35 c), Glockenschläge = Grundsitzer, nur Läuten = Ankerlieger, kurz-lang = „Bleib weg“.",
+    "mindestanzahl": 6,
+    "elemente": [
+      {
+        "label": "1. Lang-kurz-kurz, mindestens alle 2 min",
+        "pflicht": true,
+        "treffer": [
+          "lang kurz kurz",
+          "1 lang 2 kurz",
+          "ein lang zwei kurz",
+          "langer ton zwei kurze",
+          "zwei kurz",
+          "2 kurz",
+          "morse d",
+          "=d"
+        ]
+      },
+      {
+        "label": "2. Fahrzeug auf Grund",
+        "pflicht": true,
+        "treffer": [
+          "auf grund",
+          "grundsitzer",
+          "festgekommen",
+          "aufgelaufen",
+          "gestrandet",
+          "grundberührung",
+          "aufgrund"
+        ]
+      },
+      {
+        "label": "3. Fahrt verringern, vorsichtig manövrieren",
+        "treffer": [
+          "fahrt verringern",
+          "fahrt reduz",
+          "langsam",
+          "vorsichtig",
+          "verringern",
+          "reduzieren"
+        ]
+      },
+      {
+        "label": "3. Zur Fahrwassermitte halten, vorbeitasten",
+        "treffer": [
+          "mitte",
+          "vorbeitasten",
+          "tasten",
+          "abstand halten"
+        ]
+      },
+      {
+        "label": "4. Fahrzeug vor Anker",
+        "pflicht": true,
+        "treffer": [
+          "anker",
+          "ankerlieger"
+        ]
+      },
+      {
+        "label": "5. Bleib-weg-Signal: Gefahrgut, radioaktive Stoffe, Explosionsgefahr",
+        "pflicht": true,
+        "treffer": [
+          "bleib weg",
+          "bleibweg",
+          "gefährliche güter",
+          "gefahrgut",
+          "radioaktiv",
+          "explosion"
+        ]
+      },
+      {
+        "label": "5. Abstand halten, Gefahrenzone meiden",
+        "treffer": [
+          "abstand",
+          "meiden",
+          "fernhalten",
+          "gefahrenzone",
+          "fernbleiben",
+          "weg bleiben"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f09",
+    "nummer": 9,
+    "frage": "Definieren Sie den Begriff des Fahrwassers.",
+    "loesung": [
+      "Gem. § 2 (1) Nr. 1 SeeSchStrO (Begriffsbestimmungen) sind Fahrwasser die Teile der Wasserflächen, die durch die Sichtzeichen B.11 und B.13 der Anlage I begrenzt oder gekennzeichnet sind."
+    ],
+    "hinweis": "Welche Zeichen grenzen das Fahrwasser ab?",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Teile der Wasserflächen",
+        "pflicht": true,
+        "treffer": [
+          "wasserfläche",
+          "wasserflaech",
+          "bereich",
+          "teil"
+        ]
+      },
+      {
+        "label": "Durch Sichtzeichen B.11 / B.13 begrenzt oder gekennzeichnet",
+        "pflicht": true,
+        "treffer": [
+          "sichtzeichen",
+          "tonnen",
+          "betonnt",
+          "betonnung",
+          "begrenzt",
+          "gekennzeichnet",
+          "lateral",
+          "=11",
+          "=13"
+        ]
+      },
+      {
+        "label": "§ 2 SeeSchStrO",
+        "treffer": [
+          "seeschstro",
+          "begriffsbestimmung"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f10",
+    "nummer": 10,
+    "frage": "Nennen Sie die Fahrzeuge, die die Vorfahrt der im Fahrwasser fahrenden Fahrzeuge zu beachten haben.",
+    "loesung": [
+      "SeeSchStrO § 25 (2): Im Fahrwasser haben dem Fahrwasserverlauf folgende Fahrzeuge unabhängig davon, ob sie nur innerhalb des Fahrwassers sicher fahren können, Vorfahrt gegenüber Fahrzeugen, die",
+      "- in das Fahrwasser einlaufen,",
+      "- das Fahrwasser queren,",
+      "- im Fahrwasser drehen,",
+      "- ihre Anker- oder Liegeplätze verlassen."
+    ],
+    "hinweis": "Vier Fälle: hinein, hinüber, herum – und vom Liegeplatz weg.",
+    "mindestanzahl": 4,
+    "elemente": [
+      {
+        "label": "Einlaufende",
+        "treffer": [
+          "einlaufen",
+          "einläuft",
+          "einfahren",
+          "einfährt",
+          "hineinfahren"
+        ]
+      },
+      {
+        "label": "Querende",
+        "treffer": [
+          "queren",
+          "quert",
+          "kreuzen",
+          "kreuzt",
+          "überqueren"
+        ]
+      },
+      {
+        "label": "Drehende",
+        "treffer": [
+          "drehen",
+          "dreht",
+          "wenden"
+        ]
+      },
+      {
+        "label": "Anker- oder Liegeplatz Verlassende",
+        "treffer": [
+          "liegeplatz",
+          "ankerplatz",
+          "ablegen",
+          "ablegt",
+          "verlassen",
+          "anker auf"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f11",
+    "nummer": 11,
+    "frage": "Eine Motoryacht schleppt eine havarierte Segelyacht elbabwärts. Klären Sie, ob es sich hierbei um einen Schleppverband im Sinne der SeeSchStrO handelt.",
+    "loesung": [
+      "Nein. Motorsportfahrzeuge, die andere Sportfahrzeuge schleppen, gelten nicht als schleppende Maschinenfahrzeuge im Sinne der KVR (§ 2 Nr. 7 SeeSchStrO)."
+    ],
+    "hinweis": "Sportfahrzeug schleppt Sportfahrzeug – gilt das als Schleppverband?",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Nein, kein Schleppverband",
+        "pflicht": true,
+        "verneinend": true,
+        "treffer": [
+          "nein",
+          "kein schleppverband",
+          "keinen schleppverband",
+          "kein schlepp",
+          "nicht als schlepp",
+          "gilt nicht",
+          "ist kein",
+          "zählt nicht"
+        ]
+      },
+      {
+        "label": "Motorsportfahrzeug schleppt Sportfahrzeug",
+        "pflicht": true,
+        "treffer": [
+          "sportfahrzeug",
+          "sportboot",
+          "motorsport",
+          "sportfahrzeuge"
+        ]
+      },
+      {
+        "label": "§ 2 Nr. 7 SeeSchStrO",
+        "treffer": [
+          "=7",
+          "seeschstro"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f12",
+    "nummer": 12,
+    "frage": "Beschreiben Sie das allgemeine Gefahr- und Warnsignal und wer es wann zu geben hat.",
+    "loesung": [
+      "- Signal: ein langer Ton, vier kurze Töne, ein langer Ton, vier kurze Töne (– • • • •  – • • • •).",
+      "- Gefährdet ein Fahrzeug ein anderes Fahrzeug oder wird es durch dieses selbst gefährdet, hat es soweit möglich rechtzeitig dieses Schallsignal abzugeben.",
+      "(SeeSchStrO Anlage II, 2.1 Allgemeines Gefahr- und Warnsignal)"
+    ],
+    "hinweis": "Lang plus vier kurz – wie oft? Und wer gibt es: der Gefährdende oder der Gefährdete?",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Ein langer und vier kurze Töne",
+        "pflicht": true,
+        "treffer": [
+          "lang kurz kurz kurz kurz",
+          "lang vier kurz",
+          "lang 4 kurz",
+          "langer ton vier kurze",
+          "langer ton 4 kurze",
+          "vier kurz",
+          "4 kurz",
+          "vier kurze",
+          "4 kurze"
+        ]
+      },
+      {
+        "label": "Zweimal",
+        "treffer": [
+          "zweimal",
+          "2 mal",
+          "=2x",
+          "wiederholt",
+          "doppelt"
+        ]
+      },
+      {
+        "label": "Wer gefährdet oder gefährdet wird",
+        "pflicht": true,
+        "treffer": [
+          "gefährdet",
+          "gefährdung",
+          "gefährden"
+        ]
+      },
+      {
+        "label": "Soweit möglich rechtzeitig",
+        "treffer": [
+          "rechtzeitig",
+          "frühzeitig",
+          "sofort"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f13",
+    "nummer": 13,
+    "frage": "Sie fühlen sich durch ein anderes Fahrzeug auf der Weser akut gefährdet. Welches Schallsignal haben Sie zu geben?",
+    "loesung": [
+      "Allgemeines Gefahr- und Warnsignal: zweimal lang, kurz, kurz, kurz, kurz (SeeSchStrO Anlage II, 2.1)."
+    ],
+    "hinweis": "Auf Seeschifffahrtsstraßen gibt es dafür ein eigenes Signal der SeeSchStrO.",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Allgemeines Gefahr- und Warnsignal",
+        "pflicht": true,
+        "treffer": [
+          "gefahr",
+          "warnsignal",
+          "warnzeichen"
+        ]
+      },
+      {
+        "label": "Zweimal ein langer und vier kurze Töne",
+        "pflicht": true,
+        "treffer": [
+          "lang kurz kurz kurz kurz",
+          "lang vier kurz",
+          "lang 4 kurz",
+          "langer ton vier kurze",
+          "langer ton 4 kurze",
+          "vier kurz",
+          "4 kurz",
+          "vier kurze",
+          "4 kurze"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f14",
+    "nummer": 14,
+    "frage": "Beim Passieren von Cuxhaven, elbaufwärts fahrend, sehen Sie am Tage am Signalturm folgendes Signal: zwei schwarze Bälle übereinander und darunter ein schwarzer Kegel Spitze unten. Was bedeutet dieses Signal und was würde dort nachts gezeigt?",
+    "loesung": [
+      "- Bedeutung: Außergewöhnliche Schifffahrtsbehinderung.",
+      "- Nachts: drei feste Lichter übereinander, die beiden oberen rot, das untere grün.",
+      "(SeeSchStrO Anlage I, B.6 Außergewöhnliche Schifffahrtsbehinderung)"
+    ],
+    "hinweis": "Ein großes Fahrzeug braucht das ganze Fahrwasser. Nachts: rot, rot, grün.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Außergewöhnliche Schifffahrtsbehinderung",
+        "pflicht": true,
+        "treffer": [
+          "außergewöhnlich",
+          "schifffahrtsbehinderung",
+          "behinderung"
+        ]
+      },
+      {
+        "label": "Drei feste Lichter übereinander",
+        "treffer": [
+          "drei",
+          "=3",
+          "übereinander",
+          "senkrecht"
+        ]
+      },
+      {
+        "label": "Oben zwei rot, unten grün",
+        "pflicht": true,
+        "treffer": [
+          "rot rot grün",
+          "zwei rot",
+          "2 rot",
+          "oben rot",
+          "unten grün",
+          "grün"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f15",
+    "nummer": 15,
+    "frage": "Nach welchen Vorschriften weichen Segelfahrzeuge im Fahrwasser untereinander aus, wenn sie sich auf Kollisionskurs befinden?",
+    "loesung": [
+      "SeeSchStrO § 25 (2), (3):",
+      "(2) Im Fahrwasser haben dem Fahrwasserverlauf folgende Fahrzeuge unabhängig davon, ob sie nur innerhalb des Fahrwassers sicher fahren können, Vorfahrt gegenüber Fahrzeugen, die",
+      "- in das Fahrwasser einlaufen,",
+      "- das Fahrwasser queren,",
+      "- im Fahrwasser drehen,",
+      "- ihre Anker- oder Liegeplätze verlassen.",
+      "(3) Sofern Segelfahrzeuge nicht deutlich der Richtung eines Fahrwassers folgen, haben sie sich untereinander nach den Kollisionsverhütungsregeln zu verhalten, wenn sie dadurch vorfahrtberechtigte Fahrzeuge nicht gefährden oder behindern."
+    ],
+    "hinweis": "Erst die Fahrwasser-Vorfahrt der SeeSchStrO, dann untereinander …?",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "§ 25 SeeSchStrO: Vorfahrt im Fahrwasser",
+        "pflicht": true,
+        "treffer": [
+          "=25",
+          "vorfahrt",
+          "seeschstro"
+        ]
+      },
+      {
+        "label": "Untereinander nach KVR, wenn sie nicht dem Fahrwasser folgen",
+        "pflicht": true,
+        "treffer": [
+          "kvr",
+          "kollisionsverhütung",
+          "ausweichregel",
+          "regel 12"
+        ]
+      },
+      {
+        "label": "Ohne Vorfahrtberechtigte zu gefährden oder zu behindern",
+        "treffer": [
+          "gefährd",
+          "behinder",
+          "vorfahrtberechtigt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f16",
+    "nummer": 16,
+    "frage": "Welche Pflichten ergeben sich für Sie als Führer einer Yacht aus den Grundregeln für das Verhalten im Verkehr und in Bezug auf die Verantwortlichkeit an Bord?",
+    "loesung": [
+      "SeeSchStrO §§ 3, 4:",
+      "- Sicherheit und Leichtigkeit des Verkehrs gewährleisten.",
+      "- Andere nicht schädigen, gefährden oder mehr als unvermeidlich behindern oder belästigen.",
+      "- Alle Vorsichtsmaßnahmen treffen, die Seemannsbrauch oder die besonderen Umstände des Falles erfordern.",
+      "- Der Fahrzeugführer muss die Befolgung aller Vorschriften sicherstellen (Ausrüstung, Lichterführung, Sichtzeichen, Verhalten im Verkehr).",
+      "- Abweichen von den Vorschriften zur Abwendung einer unmittelbar drohenden Gefahr.",
+      "- Körperlich und geistig fit sein; wer unter dem Einfluss von Alkohol oder Drogen steht, darf kein Fahrzeug führen; es gilt die 0,5-Promille-Grenze.",
+      "- Der Schiffsführer muss vor Antritt der Reise bestimmt werden."
+    ],
+    "hinweis": "Verkehr, andere, Vorsicht, Vorschriften, Ausnahme bei Gefahr, Fitness – und wer führt?",
+    "mindestanzahl": 4,
+    "elemente": [
+      {
+        "label": "Sicherheit und Leichtigkeit des Verkehrs",
+        "treffer": [
+          "sicherheit",
+          "leichtigkeit"
+        ]
+      },
+      {
+        "label": "Andere nicht schädigen, gefährden, behindern",
+        "pflicht": true,
+        "verneinend": true,
+        "treffer": [
+          "schädigen",
+          "gefährden",
+          "behindern",
+          "belästig"
+        ]
+      },
+      {
+        "label": "Vorsichtsmaßnahmen nach Seemannsbrauch",
+        "treffer": [
+          "vorsicht",
+          "seemannsbrauch",
+          "seemännisch"
+        ]
+      },
+      {
+        "label": "Befolgung der Vorschriften sicherstellen",
+        "pflicht": true,
+        "treffer": [
+          "vorschriften",
+          "befolgung",
+          "verantwortlich",
+          "verantwortung",
+          "einhalten"
+        ]
+      },
+      {
+        "label": "Abweichen zur Abwendung drohender Gefahr",
+        "treffer": [
+          "abweichen",
+          "abweichung",
+          "drohende gefahr",
+          "notstand"
+        ]
+      },
+      {
+        "label": "Fit sein, kein Alkohol oder Drogen",
+        "verneinend": true,
+        "treffer": [
+          "alkohol",
+          "promille",
+          "drogen",
+          "fit",
+          "tauglich",
+          "nüchtern"
+        ]
+      },
+      {
+        "label": "Schiffsführer vor Reiseantritt bestimmen",
+        "treffer": [
+          "bestimm",
+          "festleg",
+          "schiffsführer",
+          "vor antritt",
+          "vor der reise"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f17",
+    "nummer": 17,
+    "frage": "Welche Schallsignale muss ein Maschinenfahrzeug geben, das Fahrt durchs Wasser macht?",
+    "loesung": [
+      "Mindestens alle 2 Minuten einen langen Ton (KVR-Regel 35 a)."
+    ],
+    "hinweis": "Ein Ton – wie lang, wie oft?",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Ein langer Ton",
+        "pflicht": true,
+        "treffer": [
+          "lang",
+          "langer ton"
+        ]
+      },
+      {
+        "label": "Mindestens alle 2 Minuten",
+        "pflicht": true,
+        "treffer": [
+          "2 minute",
+          "zwei minute",
+          "alle 2",
+          "2 min"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f18",
+    "nummer": 18,
+    "frage": "Ein Fahrzeug liegt vor Anker. Welche Schallsignale muss es gemäß den gesetzlichen Vorschriften geben, und wie unterscheidet sich dies bei Fahrzeugen von 100 und mehr Metern Länge?",
+    "loesung": [
+      "- Mindestens jede Minute etwa 5 Sekunden lang die Glocke rasch läuten.",
+      "- Ab 100 m Länge: zusätzlich zur Glocke auf dem Vorschiff unmittelbar danach etwa 5 Sekunden lang einen Gong auf dem Achterschiff rasch schlagen.",
+      "- Zusätzlich erlaubt: drei aufeinanderfolgende Töne (kurz, lang, kurz), um einem sich nähernden Fahrzeug den Standort anzuzeigen und einen möglichen Zusammenstoß zu vermeiden.",
+      "(KVR-Regel 35 g)"
+    ],
+    "hinweis": "Vorne die Glocke, hinten bei großen Schiffen …?",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Glocke rasch läuten",
+        "pflicht": true,
+        "treffer": [
+          "glocke",
+          "läuten"
+        ]
+      },
+      {
+        "label": "Jede Minute etwa 5 Sekunden",
+        "treffer": [
+          "jede minute",
+          "minute",
+          "sekunde",
+          "=5"
+        ]
+      },
+      {
+        "label": "Ab 100 m zusätzlich Gong achtern",
+        "pflicht": true,
+        "treffer": [
+          "gong",
+          "achterschiff",
+          "achtern"
+        ]
+      },
+      {
+        "label": "Zusätzlich erlaubt: kurz-lang-kurz",
+        "treffer": [
+          "kurz lang kurz",
+          "=r",
+          "morse r",
+          "drei töne",
+          "3 töne",
+          "drei aufeinanderfolgende"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f19",
+    "nummer": 19,
+    "frage": "Welche Schallsignale muss ein Fahrzeug auf Grund geben, und welche zusätzlichen Signale sind erlaubt?",
+    "loesung": [
+      "- Glockensignal und, falls vorgeschrieben, Gongsignal (wie Fahrzeug vor Anker).",
+      "- Zusätzlich unmittelbar vor und nach dem raschen Glockenläuten jeweils drei scharf voneinander getrennte Glockenschläge.",
+      "- Zusätzlich erlaubt: ein geeignetes Pfeifensignal, um auf die Situation aufmerksam zu machen.",
+      "(KVR-Regel 35 h)"
+    ],
+    "hinweis": "Wie vor Anker – plus etwas davor und danach.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Glocke (und ggf. Gong) wie vor Anker",
+        "pflicht": true,
+        "treffer": [
+          "glocke",
+          "läuten",
+          "wie vor anker",
+          "ankerlieger"
+        ]
+      },
+      {
+        "label": "Drei einzelne Glockenschläge vor und nach dem Läuten",
+        "pflicht": true,
+        "treffer": [
+          "drei",
+          "=3",
+          "glockenschläge",
+          "schläge",
+          "einzelne"
+        ]
+      },
+      {
+        "label": "Zusätzlich Pfeifensignal erlaubt",
+        "treffer": [
+          "pfeif",
+          "horn",
+          "schallsignal"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f20",
+    "nummer": 20,
+    "frage": "Ein Fahrzeug von 13,5 m Länge sitzt auf Grund.\n1. Welche Signale bei Tag und bei Nacht muss es zeigen?\n2. Welche Schallsignale sind nach den geltenden Vorschriften zu geben?",
+    "loesung": [
+      "1. Am Tage drei Bälle senkrecht übereinander; bei Nacht im vorderen Teil ein weißes Rundumlicht und zwei rote Rundumlichter senkrecht übereinander, dort wo sie am besten gesehen werden können (KVR-Regel 30 b, d; gilt ab 12 m Länge).",
+      "2. Fahrzeuge zwischen 12 und 20 m Länge müssen die Glocken- und Gongsignale nach KVR-Regel 35 g und h nicht geben. Stattdessen mindestens alle 2 Minuten ein anderes kräftiges Schallsignal. Ein geeignetes Pfeifensignal ist zusätzlich erlaubt, aber keine Pflicht."
+    ],
+    "hinweis": "Tags Bälle, nachts Ankerlicht plus Rot. Unter 20 m ist keine Glocke vorgeschrieben.",
+    "mindestanzahl": 4,
+    "elemente": [
+      {
+        "label": "Tags drei Bälle senkrecht übereinander",
+        "pflicht": true,
+        "treffer": [
+          "drei bälle",
+          "3 bälle",
+          "bälle",
+          "ball"
+        ]
+      },
+      {
+        "label": "Nachts weißes Rundumlicht (Ankerlicht)",
+        "treffer": [
+          "weißes",
+          "ankerlicht",
+          "rundumlicht"
+        ]
+      },
+      {
+        "label": "Nachts zwei rote Rundumlichter übereinander",
+        "pflicht": true,
+        "treffer": [
+          "zwei rot",
+          "2 rot",
+          "rote",
+          "rot rot"
+        ]
+      },
+      {
+        "label": "Statt Glocke ein anderes kräftiges Schallsignal",
+        "pflicht": true,
+        "verneinend": true,
+        "treffer": [
+          "anderes",
+          "kräftig",
+          "statt",
+          "nicht verpflichtet",
+          "keine glocke",
+          "schallsignal"
+        ]
+      },
+      {
+        "label": "Mindestens alle 2 Minuten",
+        "pflicht": true,
+        "treffer": [
+          "2 minute",
+          "zwei minute",
+          "alle 2",
+          "2 min"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f21",
+    "nummer": 21,
+    "frage": "Wo ist auf einer Seeschifffahrtsstraße das Überholen verboten?",
+    "loesung": [
+      "SeeSchStrO § 23 (3):",
+      "- in der Nähe von in Fahrt befindlichen, nicht freifahrenden Fähren,",
+      "- an engen Stellen und in unübersichtlichen Krümmungen,",
+      "- vor und innerhalb von Schleusen sowie innerhalb der Schleusenvorhäfen und Zufahrten des Nord-Ostsee-Kanals, mit Ausnahme von schwimmenden Geräten im Einsatz,",
+      "- innerhalb von Strecken und zwischen Fahrzeugen, die nach § 60 Abs. 1 bekanntgemacht sind."
+    ],
+    "hinweis": "Fähren, enge Stellen, Schleusen – und was die Behörde bekannt macht.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Bei in Fahrt befindlichen, nicht freifahrenden Fähren",
+        "treffer": [
+          "fähre"
+        ]
+      },
+      {
+        "label": "An engen Stellen und unübersichtlichen Krümmungen",
+        "treffer": [
+          "=eng",
+          "enge",
+          "engstelle",
+          "krümmung",
+          "kurve",
+          "unübersichtlich"
+        ]
+      },
+      {
+        "label": "Vor und in Schleusen, Zufahrten des NOK",
+        "treffer": [
+          "schleuse",
+          "=nok",
+          "nord ostsee",
+          "kanal"
+        ]
+      },
+      {
+        "label": "Auf bekanntgemachten Strecken",
+        "treffer": [
+          "bekanntgemacht",
+          "bekanntmachung",
+          "=60",
+          "strecken"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f22",
+    "nummer": 22,
+    "frage": "Wie haben sich Fahrzeuge zu verhalten, die in das Fahrwasser einlaufen bzw. das Fahrwasser queren?",
+    "loesung": [
+      "Sie müssen den Fahrzeugen, die das Fahrwasser benutzen, Vorfahrt gewähren (SeeSchStrO § 25 (2))."
+    ],
+    "hinweis": "Wer kommt zuerst: wer schon im Fahrwasser fährt oder wer hinzukommt?",
+    "mindestanzahl": 1,
+    "elemente": [
+      {
+        "label": "Vorfahrt der Fahrzeuge im Fahrwasser beachten",
+        "pflicht": true,
+        "treffer": [
+          "vorfahrt gewähren",
+          "vorfahrt beachten",
+          "vorfahrt lassen",
+          "wartepflicht",
+          "ausweichen",
+          "warten",
+          "vorfahrt"
+        ]
+      },
+      {
+        "label": "§ 25 SeeSchStrO",
+        "treffer": [
+          "=25",
+          "seeschstro"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f23",
+    "nummer": 23,
+    "frage": "Was ist eine Engstelle (geben Sie Beispiele an) und wie ist der Verkehr dort geregelt?",
+    "loesung": [
+      "- Engstelle: Stelle im Fahrwasser, an der zwei Fahrzeuge nicht gefahrlos nebeneinander fahren können, z. B. bei Baustellen oder Brückendurchfahrten.",
+      "- An Engstellen gilt Überholverbot.",
+      "- Ein Begegnungsverbot wird durch das Sichtzeichen A.2 angezeigt.",
+      "- Vorfahrt hat nach § 25 (5) SeeSchStrO in Tidegewässern und in Gewässern mit Strömung das Fahrzeug, das mit dem Strom fährt; bei Stromstillstand das Fahrzeug, das vorher gegen den Strom gefahren ist.",
+      "- In Gewässern ohne Strömung hat das Fahrzeug Vorfahrt, das die Steuerbordseite des Fahrwassers zu benutzen hat.",
+      "- Das wartepflichtige Fahrzeug wartet außerhalb der Engstelle, bis das andere vorbei ist."
+    ],
+    "hinweis": "Definition, Beispiele, Überholen, Begegnen – und wer hat Vorfahrt: mit oder gegen den Strom?",
+    "mindestanzahl": 5,
+    "elemente": [
+      {
+        "label": "Zwei Fahrzeuge können nicht gefahrlos nebeneinander fahren",
+        "pflicht": true,
+        "verneinend": true,
+        "treffer": [
+          "nebeneinander",
+          "nicht gleichzeitig",
+          "zu schmal",
+          "nicht begegnen",
+          "begegnen",
+          "passieren"
+        ]
+      },
+      {
+        "label": "Beispiele: Baustellen, Brückendurchfahrten",
+        "treffer": [
+          "baustelle",
+          "bauarbeit",
+          "brücke",
+          "schleuse",
+          "wrack"
+        ]
+      },
+      {
+        "label": "Überholverbot",
+        "treffer": [
+          "überhol"
+        ]
+      },
+      {
+        "label": "Begegnungsverbot durch Sichtzeichen A.2",
+        "treffer": [
+          "begegnungsverbot",
+          "a 2",
+          "=a2",
+          "sichtzeichen",
+          "tafel"
+        ]
+      },
+      {
+        "label": "Vorfahrt hat, wer mit dem Strom fährt",
+        "pflicht": true,
+        "treffer": [
+          "mit dem strom",
+          "mit der strömung",
+          "strom",
+          "talfahr"
+        ]
+      },
+      {
+        "label": "Ohne Strömung: wer die Steuerbordseite benutzt",
+        "treffer": [
+          "steuerbord",
+          "=stb"
+        ]
+      },
+      {
+        "label": "Wartepflichtiger wartet außerhalb der Engstelle",
+        "treffer": [
+          "außerhalb",
+          "warten",
+          "wartet",
+          "wartepflicht"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f24",
+    "nummer": 24,
+    "frage": "Sie sehen bei Nacht folgende Sichtzeichen an Land senkrecht untereinander (von oben nach unten):\na) weiß – rot – weiß\nb) rot – grün – weiß\nc) rot – rot – grün\nGeben Sie die jeweilige Bedeutung an.",
+    "loesung": [
+      "a) Schutzbedürftige Anlage, Sog und Wellenschlag vermeiden",
+      "b) Sperrung der Seeschifffahrtsstraße",
+      "c) Außergewöhnliche Schifffahrtsbehinderung"
+    ],
+    "hinweis": "a) Rot in der Mitte schützt etwas, b) gesperrt, c) Behinderung.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "a) Schutzbedürftige Anlage, Sog und Wellenschlag vermeiden",
+        "pflicht": true,
+        "treffer": [
+          "schutzbedürftig",
+          "sog",
+          "wellenschlag"
+        ]
+      },
+      {
+        "label": "b) Sperrung der Seeschifffahrtsstraße",
+        "pflicht": true,
+        "treffer": [
+          "sperrung",
+          "gesperrt",
+          "sperre"
+        ]
+      },
+      {
+        "label": "c) Außergewöhnliche Schifffahrtsbehinderung",
+        "pflicht": true,
+        "treffer": [
+          "außergewöhnlich",
+          "behinderung"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f25",
+    "nummer": 25,
+    "frage": "In welcher Weise wird eine schutzbedürftige Anlage bei Tag und bei Nacht bezeichnet, und welche Bedeutung haben diese Sichtzeichen für den passierenden Verkehr?",
+    "loesung": [
+      "- Am Tage: ein roter Zylinder.",
+      "- Bei Nacht: drei feste Rundumlichter übereinander, oben und unten weiß, in der Mitte rot.",
+      "- Bedeutung: Sog und Wellenschlag vermeiden.",
+      "(SeeSchStrO Anlage I, A.4)"
+    ],
+    "hinweis": "Tags eine rote geometrische Form, nachts weiß-rot-weiß.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "Tags roter Zylinder",
+        "pflicht": true,
+        "treffer": [
+          "zylinder"
+        ]
+      },
+      {
+        "label": "Nachts weiß – rot – weiß übereinander",
+        "pflicht": true,
+        "treffer": [
+          "weiß rot weiß",
+          "weiss rot weiss",
+          "mitte rot",
+          "mittlere rot",
+          "oben und unten weiß",
+          "weiß rot",
+          "rot weiß"
+        ]
+      },
+      {
+        "label": "Sog und Wellenschlag vermeiden",
+        "pflicht": true,
+        "treffer": [
+          "sog",
+          "wellenschlag",
+          "sunk"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f26",
+    "nummer": 26,
+    "frage": "Durch welches Gebots- und Verbotszeichen kann die Schifffahrt ebenfalls zu entsprechendem Verhalten veranlasst werden?",
+    "loesung": [
+      "- Gebotszeichen: Geschwindigkeitsbeschränkung (weiße Tafel mit rotem Rand und Zahl, z. B. „12“).",
+      "- Verbotszeichen: Sog und Wellenschlag vermeiden (weiße Tafel mit rotem Rand, rotem Schrägstrich und Wellensymbol)."
+    ],
+    "hinweis": "Eine Tafel mit einer Zahl und eine mit Wellen.",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Gebotszeichen: Geschwindigkeitsbeschränkung",
+        "pflicht": true,
+        "treffer": [
+          "geschwindigkeit",
+          "höchstgeschwindigkeit",
+          "tempo",
+          "knoten",
+          "beschränkung",
+          "begrenzung",
+          "=kmh",
+          "km h"
+        ]
+      },
+      {
+        "label": "Verbotszeichen: Sog und Wellenschlag vermeiden",
+        "pflicht": true,
+        "treffer": [
+          "sog",
+          "wellenschlag",
+          "wellen"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f27",
+    "nummer": 27,
+    "frage": "Was für ein Licht müssen Sie auf einem Sportboot setzen, wenn Sie festgemacht haben und keine ausreichende Beleuchtung vom Ufer her vorhanden ist?",
+    "loesung": [
+      "Ein weißes Rundumlicht mittschiffs an der Fahrwasserseite oder an dem am weitesten zum Fahrwasser reichenden Ende, möglichst in Deckshöhe (SeeSchStrO Anlage II, 11 Festgemachte Fahrzeuge, schwimmende Anlagen)."
+    ],
+    "anmerkung": "KVR-Regel 30 b (weißes Rundumlicht bzw. Ball dort, wo am besten sichtbar) gilt für Fahrzeuge vor Anker. Für festgemachte Fahrzeuge auf Seeschifffahrtsstraßen gilt die SeeSchStrO.",
+    "hinweis": "Ein Licht – welche Farbe, auf welcher Seite, in welcher Höhe?",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Weißes Rundumlicht",
+        "pflicht": true,
+        "treffer": [
+          "rundumlicht",
+          "weißes licht",
+          "ankerlicht",
+          "weißes"
+        ]
+      },
+      {
+        "label": "Mittschiffs an der Fahrwasserseite",
+        "pflicht": true,
+        "treffer": [
+          "fahrwasserseite",
+          "mittschiffs",
+          "zum fahrwasser",
+          "fahrwasser"
+        ]
+      },
+      {
+        "label": "Möglichst in Deckshöhe",
+        "treffer": [
+          "deckshöhe",
+          "deck"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f28",
+    "nummer": 28,
+    "frage": "Es nähert sich Ihnen ein Fahrzeug bei Nacht auf der Elbe, das Ihnen mehrmals hintereinander das Lichtzeichen kurz, lang, kurz, kurz (Buchstabe L) gibt. Wer gibt dieses Zeichen und was bedeutet es?",
+    "loesung": [
+      "Fahrzeuge des öffentlichen Dienstes; Bedeutung: Anhalten! (SeeSchStrO Anlage I, Abschnitt II, C.1)"
+    ],
+    "hinweis": "Wer darf Sie auf dem Wasser kontrollieren?",
+    "mindestanzahl": 2,
+    "elemente": [
+      {
+        "label": "Fahrzeug des öffentlichen Dienstes",
+        "pflicht": true,
+        "treffer": [
+          "öffentlich",
+          "polizei",
+          "wasserschutz",
+          "behörde",
+          "=zoll",
+          "=wsp",
+          "küstenwache",
+          "bundespolizei"
+        ]
+      },
+      {
+        "label": "Anhalten!",
+        "pflicht": true,
+        "treffer": [
+          "anhalten",
+          "stoppen",
+          "=stopp",
+          "=halt",
+          "halten",
+          "beidrehen"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f29",
+    "nummer": 29,
+    "frage": "Was ist ein Seeunfall im Sinne des Seesicherheits-Untersuchungs-Gesetzes (SUG)?",
+    "loesung": [
+      "§ 1a SUG:",
+      "a) Jedes Ereignis im Zusammenhang mit dem Schiffsbetrieb, das eine dieser Folgen hat:",
+      "- Tod oder schwere Verletzung eines Menschen",
+      "- ein Mensch verschwindet von Bord",
+      "- Verlust, vermutlicher Verlust oder Aufgabe eines Schiffes",
+      "- Sachschaden an einem Schiff oder durch den Schiffsbetrieb",
+      "- Aufgrundlaufen, Schiffbruch oder Kollision",
+      "- Umweltschaden durch die Beschädigung eines Schiffes",
+      "b) Jedes Ereignis, durch das ein Schiff oder ein Mensch in Gefahr gerät oder schwerer Schaden an Schiff, meerestechnischem Bauwerk oder Umwelt entstehen könnte (Beinaheunfall)."
+    ],
+    "hinweis": "Folgen für Menschen, Schiff, Sachen, Umwelt – und auch der Beinaheunfall zählt.",
+    "mindestanzahl": 5,
+    "elemente": [
+      {
+        "label": "Tod oder schwere Verletzung",
+        "pflicht": true,
+        "treffer": [
+          "=tod",
+          "tode",
+          "getötet",
+          "verletz",
+          "verstorb",
+          "stirbt"
+        ]
+      },
+      {
+        "label": "Mensch verschwindet von Bord",
+        "treffer": [
+          "verschwind",
+          "verschollen",
+          "über bord",
+          "vermisst"
+        ]
+      },
+      {
+        "label": "Verlust oder Aufgabe eines Schiffes",
+        "treffer": [
+          "verlust",
+          "verloren",
+          "aufgabe",
+          "aufgegeben",
+          "untergang",
+          "gesunken",
+          "sinken"
+        ]
+      },
+      {
+        "label": "Sachschaden",
+        "treffer": [
+          "sachschaden",
+          "schaden",
+          "beschädig"
+        ]
+      },
+      {
+        "label": "Aufgrundlaufen, Schiffbruch, Kollision",
+        "pflicht": true,
+        "treffer": [
+          "aufgrund",
+          "auf grund",
+          "grundberührung",
+          "strandung",
+          "schiffbruch",
+          "kollision",
+          "zusammenstoß"
+        ]
+      },
+      {
+        "label": "Umweltschaden",
+        "treffer": [
+          "umwelt"
+        ]
+      },
+      {
+        "label": "Im Zusammenhang mit dem Schiffsbetrieb",
+        "treffer": [
+          "betrieb"
+        ]
+      },
+      {
+        "label": "Gefährdung / Beinaheunfall",
+        "treffer": [
+          "gefahr",
+          "gefährd",
+          "beinahe",
+          "könnte"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f30",
+    "nummer": 30,
+    "frage": "1. Man hört bei Nebel jede Minute 5 Sekunden lang rasches Läuten der Glocke. Wer gibt dieses Nebelsignal?\n2. Welches Schallsignal darf dieses Fahrzeug geben, wenn sich ihm ein anderes in gefährlicher Weise nähert?\n3. Welches Sichtzeichen kann dieses Fahrzeug bei Nacht zeigen, wenn sich ein anderes Fahrzeug nähert?",
+    "loesung": [
+      "1. Ein Fahrzeug vor Anker (KVR-Regel 35 g).",
+      "2. Drei aufeinanderfolgende Töne: kurz, lang, kurz, um dem sich nähernden Fahrzeug den Standort anzuzeigen und es vor einem möglichen Zusammenstoß zu warnen (KVR-Regel 35 g).",
+      "3. Am Heck kann ein weißes Licht auf und nieder bewegt werden, bis das andere Fahrzeug sicher passiert hat (sinngemäß KVR-Regel 36)."
+    ],
+    "hinweis": "Glocke = Ankerlieger. Das Warnsignal ist der Morsebuchstabe R.",
+    "mindestanzahl": 3,
+    "elemente": [
+      {
+        "label": "1. Fahrzeug vor Anker",
+        "pflicht": true,
+        "treffer": [
+          "anker",
+          "ankerlieger"
+        ]
+      },
+      {
+        "label": "2. Kurz-lang-kurz",
+        "pflicht": true,
+        "treffer": [
+          "kurz lang kurz",
+          "=r",
+          "morse r",
+          "drei töne",
+          "3 töne",
+          "drei aufeinanderfolgende"
+        ]
+      },
+      {
+        "label": "3. Weißes Licht am Heck auf und nieder bewegen",
+        "pflicht": true,
+        "treffer": [
+          "auf und nieder",
+          "auf und ab",
+          "schwenken",
+          "bewegen",
+          "heck",
+          "weißes licht"
+        ]
+      }
+    ]
+  }
+]
+</script>
+<script>
+/* ==========================================================================
+   Seerecht Muster Prüfung
+   Teil 1: Bewertung freier Antworten (ohne DOM-Zugriff)
+   Teil 2: Ablauf der Runde und Oberfläche
+   ========================================================================== */
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   Teil 1: Bewertung
+   --------------------------------------------------------------------------- */
+const Bewertung = (() => {
+  const VERNEINUNG = new Set(["nicht", "kein", "keine", "keinen", "keiner", "keinem", "keines", "nie", "niemals"]);
+  const FARBFENSTER = 10; // Wörter nach einer Farbe, in denen die Ursache stehen muss
+
+  // Kleinschreibung, Umlaute falten, ß -> ss, übrige Akzente entfernen.
+  function falten(s) {
+    return String(s).toLowerCase()
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .normalize("NFD").replace(/[̀-ͯ]/g, "");
+  }
+
+  // Text -> Abschnitte (getrennt an Satz- und Aufzählungsgrenzen) -> Wörter
+  function zerlegen(text) {
+    return falten(text)
+      // Signalfolgen wie „kurz, lang, kurz“ nicht an den Kommas zerlegen
+      .replace(/\b(lang|kurz)(\w*)\s*[,\-–]\s*(?=(lang|kurz))/g, "$1$2 ")
+      .split(/[.!?;,\n\r•]+/)
+      .map((teil) => teil.replace(/[^a-z0-9]+/g, " ").trim())
+      .filter(Boolean)
+      .map((teil) => teil.split(" "));
+  }
+
+  // Erlaubte Tippfehler je Begriffslänge
+  function toleranz(n) {
+    if (n < 7) return 0;
+    if (n <= 9) return 1;
+    return 2;
+  }
+
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    const m = a.length, n = b.length;
+    if (!m) return n;
+    if (!n) return m;
+    let vor = new Array(n + 1);
+    for (let j = 0; j <= n; j++) vor[j] = j;
+    for (let i = 1; i <= m; i++) {
+      const akt = [i];
+      for (let j = 1; j <= n; j++) {
+        akt[j] = Math.min(vor[j] + 1, akt[j - 1] + 1, vor[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      vor = akt;
+    }
+    return vor[n];
+  }
+
+  // Kleinster Abstand zwischen Begriff p und einem Teilstück von w, das mit
+  // demselben Buchstaben beginnt wie p. Damit greifen Tippfehler im Wortinneren
+  // und am Ende, aber „schalten“ wird nicht zu „abschalten“.
+  function teilAbstand(p, w, tol) {
+    if (w.includes(p)) return 0;
+    let best = Infinity;
+    for (let start = 0; start < w.length; start++) {
+      if (w[start] !== p[0]) continue;
+      const rest = w.slice(start);
+      // DP: Abstand p zu einem Präfix von rest
+      let vor = new Array(rest.length + 1);
+      for (let j = 0; j <= rest.length; j++) vor[j] = j;
+      for (let i = 1; i <= p.length; i++) {
+        const akt = [i];
+        for (let j = 1; j <= rest.length; j++) {
+          akt[j] = Math.min(vor[j] + 1, akt[j - 1] + 1, vor[j - 1] + (p[i - 1] === rest[j - 1] ? 0 : 1));
+        }
+        vor = akt;
+      }
+      for (let j = Math.max(1, p.length - tol); j <= rest.length; j++) best = Math.min(best, vor[j]);
+      if (best === 0) break;
+    }
+    return best;
+  }
+
+  // Ein Suchwort mit optionalem Steuerzeichen:
+  //   =wort  ganzes Wort exakt
+  //   ^wort  Wortanfang exakt
+  //   ~wort  ganzes Wort mit Tippfehler-Toleranz
+  //   #a-b   Zahl im Bereich a bis b
+  //   wort   Standard: unter 4 Zeichen exakt, 4 Zeichen Wortanfang,
+  //          5–6 Zeichen als Wortteil, ab 7 Zeichen Wortteil mit Toleranz
+  function wortSpec(roh) {
+    const z = roh[0];
+    if (z === "#") {
+      const [a, b] = roh.slice(1).split("-").map(Number);
+      return { art: "#", a, b };
+    }
+    if (z === "=" || z === "^" || z === "~") {
+      return { art: z, s: falten(roh.slice(1)).replace(/[^a-z0-9]/g, "") };
+    }
+    return { art: "", s: falten(roh).replace(/[^a-z0-9]/g, "") };
+  }
+
+  function wortTrifft(spec, w) {
+    const s = spec.s;
+    switch (spec.art) {
+      case "#": return /^\d+$/.test(w) && +w >= spec.a && +w <= spec.b;
+      case "=": return w === s;
+      case "^": return w.startsWith(s);
+      case "~": return levenshtein(w, s) <= Math.max(toleranz(s.length), s.length >= 5 ? 1 : 0);
+      default:
+        if (s.length < 4) return w === s;
+        if (s.length === 4) return w.startsWith(s);
+        if (s.length <= 6) return w.includes(s);
+        return teilAbstand(s, w, toleranz(s.length)) <= toleranz(s.length);
+    }
+  }
+
+  // Treffer vorbereiten: "rettungs ring" -> [{...},{...}]
+  function trefferSpec(roh) {
+    const marke = /^[=^~]/.test(roh) ? roh[0] : "";
+    if (roh[0] === "#") return [wortSpec(roh)];
+    const rest = marke ? roh.slice(1) : roh;
+    const woerter = falten(rest).replace(/[^a-z0-9^=~ ]+/g, " ").trim().split(/\s+/);
+    // Steuerzeichen am Anfang gilt für alle Wörter des Treffers
+    return woerter.map((w) => wortSpec(marke + w));
+  }
+
+  // Sucht einen Treffer in einem Abschnitt. Liefert Startindex oder -1.
+  function sucheInAbschnitt(specs, toks, verneinend, ab = 0) {
+    for (let i = ab; i < toks.length; i++) {
+      let pos = -1;
+      if (specs.length === 1) {
+        if (wortTrifft(specs[0], toks[i])) pos = i;
+        // Getrennt geschriebenes Kompositum: „rettungs ring“
+        else if (!specs[0].art && specs[0].s && specs[0].s.length >= 7 && i + 1 < toks.length &&
+                 wortTrifft(specs[0], toks[i] + toks[i + 1])) pos = i;
+      } else if (wortTrifft(specs[0], toks[i])) {
+        let k = i, ok = true;
+        for (let t = 1; t < specs.length; t++) {
+          let gefunden = -1;
+          for (let j = k + 1; j <= Math.min(toks.length - 1, k + 3); j++) {
+            if (wortTrifft(specs[t], toks[j])) { gefunden = j; break; }
+          }
+          if (gefunden < 0) { ok = false; break; }
+          k = gefunden;
+        }
+        if (ok) pos = i;
+      }
+      if (pos < 0) continue;
+      if (!verneinend && istVerneint(toks, pos)) continue;
+      return pos;
+    }
+    return -1;
+  }
+
+  function istVerneint(toks, pos) {
+    const v1 = toks[pos - 1], v2 = toks[pos - 2];
+    if (v1 && VERNEINUNG.has(v1)) return true;
+    if (v2 && VERNEINUNG.has(v2) && v1 !== "nur") return true;
+    return false;
+  }
+
+  function elementErkannt(el, abschnitte) {
+    if (el.farbe) return farbpaarErkannt(el, abschnitte);
+    for (const roh of el.treffer) {
+      const specs = trefferSpec(roh);
+      for (const toks of abschnitte) {
+        if (sucheInAbschnitt(specs, toks, !!el.verneinend) >= 0) return true;
+      }
+    }
+    return false;
+  }
+
+  // Frage 24: Ursache muss nach der Farbe stehen, vor der nächsten Farbe.
+  function farbpaarErkannt(el, abschnitte, alleFarben) {
+    const toks = abschnitte.flat();
+    const farbSpecs = (alleFarben || el._alleFarben || el.farbe).map(wortSpec);
+    const eigene = el.farbe.map(wortSpec);
+    const ursachen = el.treffer.map(trefferSpec);
+    for (let i = 0; i < toks.length; i++) {
+      if (!eigene.some((f) => wortTrifft(f, toks[i]))) continue;
+      let ende = Math.min(toks.length, i + 1 + FARBFENSTER);
+      for (let j = i + 1; j < ende; j++) {
+        if (farbSpecs.some((f) => wortTrifft(f, toks[j]))) { ende = j; break; }
+      }
+      const fenster = toks.slice(i + 1, ende);
+      if (ursachen.some((specs) => sucheInAbschnitt(specs, fenster, true) >= 0)) return true;
+    }
+    return false;
+  }
+
+  function vorbereiten(fragen) {
+    for (const f of fragen) {
+      const farben = f.elemente.filter((e) => e.farbe).flatMap((e) => e.farbe);
+      for (const e of f.elemente) if (e.farbe) e._alleFarben = farben;
+    }
+    return fragen;
+  }
+
+  // Ergebnis: { stufe: "richtig"|"teilweise"|"falsch", erkannt: [bool], anzahl, soll, fehlendePflicht: [label] }
+  function bewerten(frage, antwort) {
+    const abschnitte = zerlegen(antwort);
+    const erkannt = frage.elemente.map((el) => elementErkannt(el, abschnitte));
+    const anzahl = erkannt.filter(Boolean).length;
+    const soll = frage.mindestanzahl;
+    const fehlendePflicht = frage.elemente.filter((el, i) => el.pflicht && !erkannt[i]).map((el) => el.label);
+    let stufe = "falsch";
+    if (anzahl >= soll && fehlendePflicht.length === 0) stufe = "richtig";
+    else if (anzahl > 0 && anzahl >= Math.ceil(soll / 2)) stufe = "teilweise";
+    return { stufe, erkannt, anzahl, soll, gesamt: frage.elemente.length, fehlendePflicht };
+  }
+
+  return { bewerten, vorbereiten, falten, zerlegen, levenshtein };
+})();
+
+/* ---------------------------------------------------------------------------
+   Teil 2: Ablauf und Oberfläche
+   --------------------------------------------------------------------------- */
+const FRAGEN = Bewertung.vorbereiten(JSON.parse(document.getElementById("fragen-daten").textContent));
+const NACH_ID = Object.fromEntries(FRAGEN.map((f) => [f.id, f]));
+const GROESSEN = [10, 15, 20, FRAGEN.length];
+const MAX_WDH = 2;      // höchstens zwei Wiederholungen je Frage
+const ABSTAND = 3;      // frühestens nach drei anderen Fragen
+const WUNSCH_MIN = 3;   // „Nochmals fragen“: nach 3 bis 6 anderen Fragen
+const WUNSCH_MAX = 6;
+
+const $ = (id) => document.getElementById(id);
+const IST_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+/* ---------- Speicher mit Ersatz, falls blockiert ---------- */
+const speicher = (() => {
+  const ersatz = {};
+  return {
+    lesen(k) { try { return localStorage.getItem(k); } catch { return ersatz[k] ?? null; } },
+    schreiben(k, v) { try { localStorage.setItem(k, v); } catch { ersatz[k] = v; } },
+  };
+})();
+
+let groesse = (() => {
+  const g = parseInt(speicher.lesen("seemupr.groesse"), 10);
+  return GROESSEN.includes(g) ? g : 10;
+})();
+
+/* ---------- Zustand ---------- */
+let runde = null;     // aktuelle Runde
+let aktuell = null;   // { id, hinweis, ergebnis, ausgang, abgeschlossen }
+let vorListe = "start";
+
+function mischen(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function rundeStarten(ids) {
+  const auswahl = mischen(ids);
+  runde = {
+    ids: auswahl,
+    queue: auswahl.slice(),
+    gezeigt: 0,          // Zahl erstmals gestellter Fragen
+    vorzeitig: false,
+    st: Object.fromEntries(auswahl.map((id) => [id, {
+      wdh: 0, erst: null, erstHinweis: false, final: null, letzteAntwort: "", versuche: 0, wunsch: false,
+    }])),
+  };
+  zeige("frage");
+  naechsteFrage();
+}
+
+function naechsteFrage() {
+  if (!runde.queue.length) return ergebnisZeigen();
+  const id = runde.queue.shift();
+  const s = runde.st[id];
+  if (s.versuche === 0) runde.gezeigt++;
+  aktuell = { id, hinweis: false, ergebnis: null, ausgang: null, abgeschlossen: false,
+              aufWunsch: s.wunsch, nochmals: false };
+  s.wunsch = false;
+  frageRendern();
+}
+
+function erledigt() {
+  return runde.ids.filter((id) => runde.st[id].final !== null).length;
+}
+
+// Ausgang einer Frage verbuchen: richtig | teilweise | falsch | geloest | uebersprungen
+function verbuchen(ausgang) {
+  const s = runde.st[aktuell.id];
+  s.versuche++;
+  if (s.erst === null) { s.erst = ausgang; s.erstHinweis = aktuell.hinweis; }
+  if (ausgang === "richtig") {
+    s.final = "richtig";
+    if (aktuell.nochmals) {
+      // Auf Wunsch nochmals: nach 3 bis 6 anderen Fragen, sonst ans Ende der Runde
+      const abstand = WUNSCH_MIN + Math.floor(Math.random() * (WUNSCH_MAX - WUNSCH_MIN + 1));
+      runde.queue.splice(Math.min(abstand, runde.queue.length), 0, aktuell.id);
+      s.wunsch = true;
+      return "wieder";
+    }
+    return "fertig";
+  }
+  // Bei einer Wiederholung auf Wunsch nicht mehr richtig: es gelten die normalen Regeln
+  s.final = null;
+  if (s.wdh < MAX_WDH) {
+    s.wdh++;
+    runde.queue.splice(Math.min(ABSTAND, runde.queue.length), 0, aktuell.id);
+    return "wieder";
+  }
+  s.final = "offen";
+  return "offen";
+}
+
+function kommtWieder() {
+  return runde.st[aktuell.id].wdh < MAX_WDH;
+}
+
+/* ---------- Ansichten ---------- */
+const SCREENS = ["start", "frage", "ergebnis", "liste"];
+let screenJetzt = "start";
+
+function zeige(name) {
+  screenJetzt = name;
+  for (const s of SCREENS) $("screen-" + s).hidden = s !== name;
+  $("btn-zurueck").hidden = name === "start";
+  $("btn-liste").hidden = name === "liste" || name === "frage";
+  if (name === "start") $("crumb").textContent = `${FRAGEN.length} Fragen`;
+  if (name === "liste") $("crumb").textContent = "Alle Fragen";
+  if (name === "ergebnis") $("crumb").textContent = "Ergebnis";
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Start ---------- */
+function startRendern() {
+  const box = $("groesse-choices");
+  box.innerHTML = "";
+  for (const g of GROESSEN) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "choice";
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", String(g === groesse));
+    b.tabIndex = g === groesse ? 0 : -1;
+    const alle = g === FRAGEN.length;
+    b.innerHTML = `<span class="choice-title">${alle ? "Alle" : g}</span><span class="choice-sub">${alle ? g + " Fragen" : "Fragen"}</span>`;
+    b.setAttribute("aria-label", alle ? `Alle ${g} Fragen` : `${g} Fragen`);
+    b.addEventListener("click", () => { groesse = g; speicher.schreiben("seemupr.groesse", String(g)); startRendern(); box.querySelector('[aria-checked="true"]').focus(); });
+    box.appendChild(b);
+  }
+}
+// Pfeiltasten in der Radiogruppe
+$("groesse-choices").addEventListener("keydown", (e) => {
+  const i = GROESSEN.indexOf(groesse);
+  let n = null;
+  if (e.key === "ArrowRight" || e.key === "ArrowDown") n = (i + 1) % GROESSEN.length;
+  if (e.key === "ArrowLeft" || e.key === "ArrowUp") n = (i - 1 + GROESSEN.length) % GROESSEN.length;
+  if (n === null) return;
+  e.preventDefault();
+  groesse = GROESSEN[n];
+  speicher.schreiben("seemupr.groesse", String(groesse));
+  startRendern();
+  $("groesse-choices").querySelector('[aria-checked="true"]').focus();
+});
+
+/* ---------- Frage ---------- */
+function frageRendern() {
+  const f = NACH_ID[aktuell.id];
+  const s = runde.st[aktuell.id];
+  const n = runde.ids.length;
+  const label = s.versuche === 0
+    ? `Frage ${runde.gezeigt} von ${n} · Nr. ${f.nummer}`
+    : aktuell.aufWunsch
+      ? `<span class="wdh">Wiederholung auf Wunsch</span> · Nr. ${f.nummer}`
+      : `<span class="wdh">Wiederholung ${s.wdh} von ${MAX_WDH}</span> · Nr. ${f.nummer}`;
+  $("frage-label").innerHTML = label;
+  $("frage-text").textContent = f.frage;
+  const anteil = Math.round((erledigt() / n) * 100);
+  $("meter-fill").style.width = anteil + "%";
+  $("meter").setAttribute("aria-valuenow", String(anteil));
+  $("crumb").textContent = `${erledigt()} von ${n} erledigt`;
+
+  const ta = $("antwort");
+  ta.value = "";
+  ta.readOnly = false;
+  ta.rows = 6;
+  ta.style.height = "";
+  ta.placeholder = "Antwort frei formulieren. Stichworte genügen, Fachbegriffe zählen.";
+  $("kbd-hint").hidden = !window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  $("kbd-hint").textContent = (IST_MAC ? "Cmd" : "Strg") + " + Enter prüft";
+  $("hinweis-note").hidden = true;
+  $("btn-hinweis").disabled = false;
+  $("btn-pruefen").disabled = true;
+  $("frage-aktionen").hidden = false;
+  $("auswertung").hidden = true;
+
+  // Fokus: auf Geräten mit Tastatur direkt ins Antwortfeld
+  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) ta.focus({ preventScroll: true });
+  else $("frage-text").focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+
+function hinweisZeigen() {
+  const f = NACH_ID[aktuell.id];
+  aktuell.hinweis = true;
+  $("hinweis-text").textContent = f.hinweis;
+  $("hinweis-note").hidden = false;
+  $("btn-hinweis").disabled = true;
+  $("antwort").focus({ preventScroll: true });
+}
+
+function pruefen() {
+  const text = $("antwort").value.trim();
+  if (!text || aktuell.abgeschlossen) return;
+  const f = NACH_ID[aktuell.id];
+  aktuell.ergebnis = Bewertung.bewerten(f, text);
+  aktuell.ausgang = aktuell.ergebnis.stufe;
+  runde.st[aktuell.id].letzteAntwort = text;
+  auswertungZeigen();
+}
+
+function loesen() {
+  if (aktuell.abgeschlossen) return;
+  aktuell.ergebnis = null;
+  aktuell.ausgang = "geloest";
+  const text = $("antwort").value.trim();
+  if (text) runde.st[aktuell.id].letzteAntwort = text;
+  auswertungZeigen();
+}
+
+function ueberspringen() {
+  if (aktuell.abgeschlossen) return;
+  aktuell.abgeschlossen = true;
+  const wieder = kommtWieder();
+  verbuchen("uebersprungen");
+  toast(wieder ? "Übersprungen – kommt später nochmals" : "Übersprungen – bleibt offen");
+  naechsteFrage();
+}
+
+const KOPF = {
+  richtig: "Richtig",
+  teilweise: "Teilweise richtig",
+  falsch: "Falsch",
+  geloest: "Lösung angezeigt",
+};
+const KLASSE = { richtig: "ok", teilweise: "skip", falsch: "no", geloest: "skip" };
+
+function auswertungZeigen() {
+  const f = NACH_ID[aktuell.id];
+  const e = aktuell.ergebnis;
+  const ausgang = aktuell.ausgang;
+
+  const ta = $("antwort");
+  ta.readOnly = true;
+  if (!ta.value.trim()) { ta.rows = 1; ta.placeholder = "Keine Antwort eingegeben"; }
+  $("kbd-hint").hidden = true;
+  $("frage-aktionen").hidden = true;
+  $("auswertung").hidden = false;
+  ta.rows = 1;
+  ta.style.height = "auto";
+  ta.style.height = (ta.scrollHeight + 2) + "px";
+
+  verdictSetzen(ausgang);
+
+  // Chips
+  const chips = $("element-chips");
+  chips.innerHTML = "";
+  f.elemente.forEach((el, i) => {
+    const c = document.createElement("span");
+    const treffer = e && e.erkannt[i];
+    c.className = "chip" + (e ? (treffer ? " hit" : " fehlt") : "");
+    c.innerHTML = `<i aria-hidden="true">${e ? (treffer ? "✓" : "·") : "·"}</i>`;
+    c.appendChild(document.createTextNode(el.label));
+    if (el.pflicht) {
+      const p = document.createElement("span");
+      p.className = "pf";
+      p.textContent = "★";
+      p.title = "Pflichtpunkt";
+      c.appendChild(p);
+    }
+    c.setAttribute("aria-label", `${el.label}${el.pflicht ? ", Pflichtpunkt" : ""}${e ? (treffer ? ", erkannt" : ", fehlt") : ""}`);
+    chips.appendChild(c);
+  });
+
+  loesungRendern($("loesung-box"), f);
+  const anm = $("loesung-anmerkung");
+  anm.hidden = !f.anmerkung;
+  anm.innerHTML = f.anmerkung ? `<b>Anmerkung:</b> ` : "";
+  if (f.anmerkung) anm.appendChild(document.createTextNode(f.anmerkung));
+
+  weiterBeschriften();
+  $("verdict-head").focus({ preventScroll: true });
+  $("verdict").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+
+function weiterBeschriften() {
+  const wieder = aktuell.ausgang === "richtig" ? aktuell.nochmals : kommtWieder();
+  $("btn-weiter").textContent = runde.queue.length || wieder ? "Weiter" : "Zum Ergebnis";
+}
+
+function nochmalsUmschalten() {
+  aktuell.nochmals = !aktuell.nochmals;
+  $("btn-nochmals").setAttribute("aria-pressed", String(aktuell.nochmals));
+  weiterBeschriften();
+}
+
+function verdictSetzen(ausgang) {
+  const e = aktuell.ergebnis;
+  $("verdict").className = "verdict " + KLASSE[ausgang];
+  $("verdict-head").textContent = KOPF[ausgang] + (ausgang === "richtig" && aktuell.hinweis ? " (mit Hinweis)" : "");
+  const sub = $("verdict-sub");
+  sub.innerHTML = "";
+  const wieder = kommtWieder();
+  if (aktuell.ueberstimmt) {
+    sub.textContent = "Von Ihnen als richtig gewertet.";
+  } else if (e) {
+    sub.innerHTML = `<b>${e.anzahl} von ${e.gesamt}</b> Schlüsselelementen erkannt` +
+      (e.anzahl < e.soll && e.soll < e.gesamt ? ` (nötig: ${e.soll})` : "") + ".";
+    if (e.fehlendePflicht.length && e.anzahl > 0) {
+      sub.appendChild(document.createTextNode(" Fehlt: " + e.fehlendePflicht.join(", ") + "."));
+    }
+    if (ausgang !== "richtig") sub.appendChild(document.createTextNode(wieder ? " Kommt später nochmals." : " Bleibt offen."));
+  } else {
+    sub.textContent = wieder ? "Die Frage kommt später nochmals." : "Die Frage bleibt offen.";
+  }
+  $("btn-doch").hidden = !(e && (ausgang === "teilweise" || ausgang === "falsch"));
+  aktuell.nochmals = false;
+  $("btn-nochmals").setAttribute("aria-pressed", "false");
+  $("btn-nochmals").hidden = ausgang !== "richtig";
+}
+
+function dochRichtig() {
+  aktuell.ausgang = "richtig";
+  aktuell.ueberstimmt = true;
+  verdictSetzen("richtig");
+  weiterBeschriften();
+  $("verdict-head").focus({ preventScroll: true });
+}
+
+function weiter() {
+  if (aktuell.abgeschlossen) return;
+  aktuell.abgeschlossen = true;
+  verbuchen(aktuell.ausgang);
+  naechsteFrage();
+}
+
+function loesungRendern(box, f) {
+  // Zeilen mit „- “ werden Aufzählungspunkte, alle anderen Absätze.
+  box.innerHTML = "";
+  let ul = null;
+  for (const z of f.loesung) {
+    if (z.startsWith("- ")) {
+      if (!ul) { ul = document.createElement("ul"); box.appendChild(ul); }
+      const li = document.createElement("li");
+      li.textContent = z.slice(2);
+      ul.appendChild(li);
+    } else {
+      ul = null;
+      const p = document.createElement("p");
+      p.textContent = z;
+      box.appendChild(p);
+    }
+  }
+}
+
+/* ---------- Ergebnis ---------- */
+function ergebnisZeigen() {
+  zeige("ergebnis");
+  const gestellt = runde.ids.filter((id) => runde.st[id].erst !== null);
+  const n = gestellt.length;
+  const erstRichtig = gestellt.filter((id) => runde.st[id].erst === "richtig");
+  const mitHinweis = erstRichtig.filter((id) => runde.st[id].erstHinweis).length;
+  const spaeter = gestellt.filter((id) => runde.st[id].erst !== "richtig" && runde.st[id].final === "richtig");
+  const offen = gestellt.filter((id) => runde.st[id].final !== "richtig");
+
+  $("ergebnis-eyebrow").textContent = runde.vorzeitig
+    ? `Vorzeitig beendet · ${n} von ${runde.ids.length} Fragen gestellt`
+    : "Runde beendet";
+  $("ergebnis-score").textContent = n ? Math.round((erstRichtig.length / n) * 100) + " %" : "–";
+  $("ergebnis-zahl").textContent = `${erstRichtig.length}/${n}`;
+
+  const facts = $("ergebnis-facts");
+  facts.innerHTML = "";
+  const fakt = (zahl, text) => {
+    const s = document.createElement("span");
+    s.className = "fact";
+    s.innerHTML = `<b>${zahl}</b>`;
+    s.appendChild(document.createTextNode(text));
+    facts.appendChild(s);
+  };
+  if (mitHinweis) fakt(mitHinweis, "davon mit Hinweis");
+  if (spaeter.length) fakt(spaeter.length, "nach Wiederholung gelöst");
+  if (offen.length) fakt(offen.length, "offen");
+  if (!spaeter.length && !offen.length && n) fakt(n, "alle beim ersten Mal");
+
+  const liste = $("misslist");
+  liste.innerHTML = "";
+  const nachzuarbeiten = [...offen, ...spaeter].sort((a, b) => NACH_ID[a].nummer - NACH_ID[b].nummer);
+  $("miss-eyebrow").hidden = !nachzuarbeiten.length;
+  for (const id of nachzuarbeiten) {
+    const f = NACH_ID[id];
+    const s = runde.st[id];
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "miss" + (s.final === "richtig" ? " later" : "");
+    b.innerHTML = `<b>${f.nummer}</b>`;
+    const span = document.createElement("span");
+    span.textContent = f.frage;
+    const small = document.createElement("small");
+    small.textContent = s.final === "richtig"
+      ? `nach ${s.wdh}. Wiederholung gelöst`
+      : (s.final === "offen" ? "offen nach " + s.versuche + " Versuchen" : "nicht abgeschlossen");
+    span.appendChild(small);
+    b.appendChild(span);
+    b.addEventListener("click", () => loesungsPanel(id, true));
+    liste.appendChild(b);
+  }
+  $("btn-fehler").hidden = !nachzuarbeiten.length;
+  $("btn-fehler").textContent = `Fehler nochmals üben (${nachzuarbeiten.length})`;
+  runde.fehler = nachzuarbeiten;
+}
+
+/* ---------- Alle Fragen ---------- */
+function listeRendern() {
+  const q = Bewertung.falten($("suche").value.trim());
+  const box = $("such-treffer");
+  box.innerHTML = "";
+  const treffer = FRAGEN.filter((f) => !q || Bewertung.falten(f.frage + " " + f.loesung.join(" ")).includes(q));
+  $("such-zahl").textContent = q ? `${treffer.length} von ${FRAGEN.length} Fragen` : `${FRAGEN.length} Fragen`;
+  for (const f of treffer) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "such-zeile";
+    b.innerHTML = `<b>${f.nummer}</b>`;
+    const s = document.createElement("span");
+    s.textContent = f.frage;
+    b.appendChild(s);
+    b.addEventListener("click", () => loesungsPanel(f.id, false));
+    box.appendChild(b);
+  }
+}
+
+function listeOeffnen() {
+  if (screenJetzt === "frage") { toast("Während der Runde nicht verfügbar"); return; }
+  vorListe = screenJetzt === "liste" ? vorListe : screenJetzt;
+  zeige("liste");
+  listeRendern();
+}
+
+/* ---------- Panels ---------- */
+let letzterFokus = null;
+
+function panelOeffnen(id) {
+  letzterFokus = document.activeElement;
+  const p = $(id);
+  p.hidden = false;
+  const ziel = p.querySelector(".sheet-body button, .sheet-head .icon-btn") || p.querySelector("[data-schliessen]");
+  setTimeout(() => ziel && ziel.focus(), 30);
+}
+function panelSchliessen(p) {
+  p.hidden = true;
+  if (letzterFokus && document.contains(letzterFokus)) letzterFokus.focus({ preventScroll: true });
+}
+document.querySelectorAll(".sheet-wrap").forEach((p) => {
+  p.addEventListener("click", (e) => { if (e.target.closest("[data-schliessen]")) panelSchliessen(p); });
+});
+
+function loesungsPanel(id, mitAntwort) {
+  const f = NACH_ID[id];
+  $("sheet-loesung-nr").textContent = `Frage ${f.nummer}`;
+  $("sheet-loesung-titel").textContent = f.frage;
+  const body = $("sheet-loesung-body");
+  body.innerHTML = "";
+  if (mitAntwort && runde) {
+    const e = document.createElement("p");
+    e.className = "eyebrow";
+    e.textContent = "Ihre letzte Antwort";
+    body.appendChild(e);
+    const a = document.createElement("div");
+    const t = runde.st[id] && runde.st[id].letzteAntwort;
+    a.className = "eigene" + (t ? "" : " leer");
+    a.textContent = t || "Keine Antwort eingegeben";
+    body.appendChild(a);
+  }
+  const e2 = document.createElement("p");
+  e2.className = "eyebrow";
+  e2.textContent = "Musterlösung";
+  body.appendChild(e2);
+  const box = document.createElement("div");
+  box.className = "loesung";
+  loesungRendern(box, f);
+  body.appendChild(box);
+  if (f.anmerkung) {
+    const anm = document.createElement("p");
+    anm.className = "anmerkung";
+    anm.innerHTML = "<b>Anmerkung:</b> ";
+    anm.appendChild(document.createTextNode(f.anmerkung));
+    body.appendChild(anm);
+  }
+  const e3 = document.createElement("p");
+  e3.className = "eyebrow sub-eyebrow";
+  e3.textContent = "Schlüsselelemente";
+  body.appendChild(e3);
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  for (const el of f.elemente) {
+    const c = document.createElement("span");
+    c.className = "chip";
+    c.textContent = el.label;
+    if (el.pflicht) {
+      const p = document.createElement("span");
+      p.className = "pf";
+      p.textContent = "★";
+      c.appendChild(p);
+    }
+    chips.appendChild(c);
+  }
+  body.appendChild(chips);
+  panelOeffnen("sheet-loesung");
+}
+
+/* ---------- Toast ---------- */
+let toastZeit = null;
+function toast(text) {
+  const t = $("toast");
+  t.textContent = text;
+  t.hidden = false;
+  clearTimeout(toastZeit);
+  toastZeit = setTimeout(() => { t.hidden = true; }, 2200);
+}
+
+/* ---------- Ereignisse ---------- */
+$("btn-start").addEventListener("click", () => rundeStarten(mischen(FRAGEN.map((f) => f.id)).slice(0, groesse)));
+$("btn-liste").addEventListener("click", listeOeffnen);
+$("btn-liste-2").addEventListener("click", listeOeffnen);
+$("btn-info").addEventListener("click", () => panelOeffnen("sheet-info"));
+$("btn-info-2").addEventListener("click", () => panelOeffnen("sheet-info"));
+$("suche").addEventListener("input", listeRendern);
+
+$("antwort").addEventListener("input", () => { $("btn-pruefen").disabled = !$("antwort").value.trim(); });
+$("btn-pruefen").addEventListener("click", pruefen);
+$("btn-hinweis").addEventListener("click", hinweisZeigen);
+$("btn-loesen").addEventListener("click", loesen);
+$("btn-ueberspringen").addEventListener("click", ueberspringen);
+$("btn-doch").addEventListener("click", dochRichtig);
+$("btn-nochmals").addEventListener("click", nochmalsUmschalten);
+$("btn-weiter").addEventListener("click", weiter);
+
+$("btn-fehler").addEventListener("click", () => rundeStarten(runde.fehler));
+$("btn-neu").addEventListener("click", () => rundeStarten(mischen(FRAGEN.map((f) => f.id)).slice(0, groesse)));
+$("btn-zum-start").addEventListener("click", () => { zeige("start"); startRendern(); });
+
+$("btn-zurueck").addEventListener("click", () => {
+  if (screenJetzt === "frage") return panelOeffnen("sheet-beenden");
+  if (screenJetzt === "liste") {
+    if (vorListe === "ergebnis" && runde) return zeige("ergebnis");
+    zeige("start"); return startRendern();
+  }
+  zeige("start");
+  startRendern();
+});
+$("btn-beenden-ja").addEventListener("click", () => {
+  $("sheet-beenden").hidden = true;
+  runde.vorzeitig = runde.queue.length > 0 || !aktuell.abgeschlossen;
+  // Eine bereits ausgewertete, aber noch nicht bestätigte Frage zählt mit.
+  if (!aktuell.abgeschlossen && aktuell.ausgang) { aktuell.abgeschlossen = true; verbuchen(aktuell.ausgang); }
+  runde.queue = [];
+  ergebnisZeigen();
+});
+
+document.addEventListener("keydown", (e) => {
+  const offen = [...document.querySelectorAll(".sheet-wrap")].find((p) => !p.hidden);
+  if (e.key === "Escape" && offen) { panelSchliessen(offen); return; }
+  if (offen) return;
+  if (screenJetzt !== "frage") return;
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    if (!$("auswertung").hidden) weiter();
+    else pruefen();
+  }
+});
+
+/* ---------- Offlinebetrieb ---------- */
+function offlineStatus(text) { $("offline-status").textContent = text; }
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register("sw.js").then(() => {
+    offlineStatus("Offline verfügbar: Die App ist auf diesem Gerät gespeichert und startet auch ohne Netz.");
+  }).catch(() => offlineStatus("Offlinespeicher nicht verfügbar. Die App läuft, braucht aber beim Öffnen eine Verbindung."));
+} else {
+  offlineStatus("Offline-Installation ist nur über eine Webadresse (z. B. GitHub Pages) möglich, nicht beim Öffnen als Datei.");
+}
+
+/* ---------- Start ---------- */
+startRendern();
+window.__seemupr = { Bewertung, FRAGEN };
+</script>
+</body>
+</html>
