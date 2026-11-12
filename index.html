@@ -2947,7 +2947,7 @@ function fortschrittRendern() {
     raster.appendChild(b);
   }
   $("fortschritt-lede").textContent = bearbeitet
-    ? `${bearbeitet} von ${FRAGEN.length} Fragen bearbeitet, davon ${sicher} sicher. ${lernstand.runden} Runden gespielt. Die Prozentzahl bezieht sich auf die letzten fünf ersten Versuche.`
+    ? `${bearbeitet} von ${FRAGEN.length} Fragen bearbeitet, davon ${sicher} sicher. ${lernstand.runden} ${lernstand.runden === 1 ? "Runde" : "Runden"} gespielt. Die Prozentzahl bezieht sich auf die letzten fünf ersten Versuche.`
     : "Noch keine Frage bearbeitet.";
 }
 function fortschrittOeffnen() {

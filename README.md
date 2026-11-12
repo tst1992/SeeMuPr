@@ -86,7 +86,7 @@ Die Fragen stehen in `index.html` im Block
 - **`mindestanzahl`**: so viele Elemente braucht „Richtig“ (zusätzlich zu allen
   Pflichtelementen). „Teilweise“ ab der Hälfte davon.
 
-Nach einer Änderung in `sw.js` die Zeile `const BESTAND = "seemupr-v4";`
+Nach einer Änderung in `sw.js` die Zeile `const BESTAND = "seemupr-v5";`
 hochzählen (`v2`, `v3` …), damit installierte Apps die neue Fassung laden.
 Nach einer Änderung an `index.html` ebenfalls.
 
