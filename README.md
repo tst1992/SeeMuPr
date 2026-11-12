@@ -86,7 +86,7 @@ Die Fragen stehen in `index.html` im Block
 - **`mindestanzahl`**: so viele Elemente braucht „Richtig“ (zusätzlich zu allen
   Pflichtelementen). „Teilweise“ ab der Hälfte davon.
 
-Nach einer Änderung in `sw.js` die Zeile `const BESTAND = "seemupr-v3";`
+Nach einer Änderung in `sw.js` die Zeile `const BESTAND = "seemupr-v4";`
 hochzählen (`v2`, `v3` …), damit installierte Apps die neue Fassung laden.
 Nach einer Änderung an `index.html` ebenfalls.
 
@@ -108,6 +108,34 @@ mit diesen Fragen.
 
 Richtig beantwortet: Mit **„Nochmals fragen“** kommt die Frage nach drei bis
 sechs anderen Fragen nochmals, so oft man möchte.
+
+## Lernstand und Auswahl der Fragen
+
+Die App speichert im Browser (`localStorage`, Schlüssel `seemupr.lernstand`)
+für jede Frage, wie oft und in welcher Runde sie zuletzt gestellt wurde, und
+die Punkte der letzten fünf **ersten** Versuche je Runde: richtig und „Doch
+richtig“ 1, teilweise 0,5, falsch, gelöst und übersprungen 0.
+
+Runden mit 10, 15 oder 20 Fragen wählen gewichtet aus:
+
+- Noch nie gestellte Fragen kommen zuerst. Nach drei Runden à 10 Fragen war
+  jede Frage einmal dran.
+- Danach gilt: Priorität = Runden seit dem letzten Stellen × Gewicht. Das
+  Gewicht reicht von 1 (zuletzt immer richtig) bis 4 (immer falsch). In der
+  Praxis kommen schwache Fragen dadurch etwa dreimal so oft wie sichere.
+- Keine Frage setzt länger aus als 3 × (30 ÷ Rundengrösse, aufgerundet)
+  Runden: bei 10 Fragen 9 Runden, bei 15 und 20 Fragen 6 Runden.
+
+„Alle 30“ und „Fehler nochmals üben“ wählen wie bisher, ihre Ergebnisse
+zählen aber für den Lernstand.
+
+Das Balkensymbol oben rechts öffnet die Ansicht **Fortschritt**: eine Kachel
+je Frage (grün sicher ab 80 %, gelb teilweise ab 40 %, rot darunter, grau
+neu). Darunter lässt sich der Lernstand als Datei ausgeben, wieder einlesen
+oder nach einer Rückfrage löschen. Auf der Startseite steht eine Kurzübersicht.
+
+Stellschrauben im Programm: `VERLAUF_MAX` (5), `FEHLER_FAKTOR` (3),
+`maxPause()`.
 
 ## Datengrundlage
 

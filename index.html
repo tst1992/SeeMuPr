@@ -314,6 +314,25 @@ input#suche:focus{border-color:var(--stbd);outline:none}
   *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 .q-name,#sheet-loesung-titel{white-space:pre-line}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:7px;margin-bottom:26px}
+.tile{aspect-ratio:1;display:grid;place-items:center;align-content:center;gap:1px;background:var(--sea-850);border:1px solid var(--line-soft);border-radius:11px;color:var(--fog-dim);font-family:var(--mono);cursor:pointer;font-size:1.15rem;padding:0}
+.tile:hover{border-color:var(--line)}
+.tile b{font-weight:600;color:var(--white-light)}
+.tile small{font-size:.62rem;letter-spacing:.02em}
+.tile.good{border-color:var(--stbd);color:var(--stbd)}
+.tile.mid{border-color:var(--brass);color:var(--brass)}
+.tile.bad{border-color:var(--port);color:var(--port)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:4px 0 22px;font-size:.76rem;color:var(--fog-dim)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend .sw{width:11px;height:11px;border-radius:3px;border:1px solid var(--line)}
+.legend .sw.good{border-color:var(--stbd);background:rgba(60,194,140,.22)}
+.legend .sw.mid{border-color:var(--brass);background:rgba(216,165,68,.22)}
+.legend .sw.bad{border-color:var(--port);background:rgba(232,85,94,.22)}
+.stand-zeile{font-size:.8rem;color:var(--fog-dim);margin:-14px 0 22px;font-family:var(--mono)}
+.stand-zeile b{font-weight:600}
+.stand-zeile .g{color:var(--stbd)}.stand-zeile .m{color:var(--brass)}.stand-zeile .r{color:var(--port)}
+.ghost.danger{margin-top:20px}
+.ghost.danger.scharf{color:var(--port);border-color:var(--port)}
 .loesung>:last-child{margin-bottom:0}
 </style>
 </head>
@@ -330,6 +349,9 @@ input#suche:focus{border-color:var(--stbd);outline:none}
       <span class="brand-name">Seerecht Muster Prüfung</span>
       <span class="crumb" id="crumb">30 Fragen</span>
     </span>
+    <button class="icon-btn" id="btn-fortschritt" type="button" title="Fortschritt" aria-label="Fortschritt">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V10M10 19V5M16 19v-6M22 19H2"/></svg>
+    </button>
     <button class="icon-btn" id="btn-liste" type="button" title="Alle Fragen" aria-label="Alle Fragen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/></svg>
     </button>
@@ -347,6 +369,7 @@ input#suche:focus{border-color:var(--stbd);outline:none}
     <p class="eyebrow">Sportseeschifferschein · Schifffahrtsrecht</p>
     <h1 class="h-display">Seerecht Muster Prüfung</h1>
     <p class="lede">30 Prüfungsfragen zu KVR, SeeSchStrO, Schiffspapieren und SUG in zufälliger Reihenfolge. Antwort frei formulieren, prüfen lassen und mit der Musterlösung vergleichen. Falsche Antworten kommen später nochmals.</p>
+    <p class="stand-zeile" id="stand-zeile" hidden></p>
 
     <p class="eyebrow" id="groesse-label">Rundengrösse</p>
     <div class="choices row4" id="groesse-choices" role="radiogroup" aria-labelledby="groesse-label"></div>
@@ -419,6 +442,26 @@ input#suche:focus{border-color:var(--stbd);outline:none}
     <button class="ghost" id="btn-zum-start" type="button">Zur Startseite</button>
   </section>
 
+  <!-- ---------- Fortschritt ---------- -->
+  <section class="screen" id="screen-fortschritt" hidden>
+    <p class="eyebrow">Lernstand</p>
+    <h2 class="h-section">Fortschritt</h2>
+    <p class="lede" id="fortschritt-lede"></p>
+    <div class="legend">
+      <span><i class="sw good"></i>sicher</span>
+      <span><i class="sw mid"></i>teilweise</span>
+      <span><i class="sw bad"></i>unsicher</span>
+      <span><i class="sw"></i>neu</span>
+    </div>
+    <div class="grid" id="fortschritt-raster"></div>
+    <p class="eyebrow">Lernstand sichern</p>
+    <p class="lede">Der Lernstand liegt nur in diesem Browser. Zur Sicherung oder für ein anderes Gerät als Datei ausgeben und dort einlesen.</p>
+    <button class="ghost" id="btn-export" type="button">Lernstand ausgeben</button>
+    <button class="ghost" id="btn-import" type="button">Lernstand einlesen</button>
+    <input type="file" id="import-datei" accept="application/json,.json" hidden>
+    <button class="ghost danger" id="btn-reset" type="button">Lernstand löschen</button>
+  </section>
+
   <!-- ---------- Alle Fragen ---------- -->
   <section class="screen" id="screen-liste" hidden>
     <p class="eyebrow">Ohne Abfrage</p>
@@ -474,6 +517,10 @@ input#suche:focus{border-color:var(--stbd);outline:none}
       <p>Falsch, teilweise, gelöst oder übersprungen: Die Frage kommt nach frühestens drei anderen Fragen wieder, höchstens zweimal. Danach bleibt sie offen und erscheint im Ergebnis.</p>
       <p>Richtig beantwortet: Mit „Nochmals fragen“ kommt die Frage nach drei bis sechs anderen Fragen nochmals, so oft Sie möchten. Sie zählt weiter als beim ersten Mal richtig. Wird sie bei der Wiederholung nicht richtig beantwortet, gelten die normalen Regeln.</p>
 
+      <p class="help-h">Auswahl der Fragen</p>
+      <p>Die App merkt sich für jede Frage, wie oft und wann sie gestellt wurde, und die Ergebnisse der letzten fünf ersten Versuche. Bei Runden mit 10, 15 oder 20 Fragen kommen Fragen zuerst, die lange nicht dran waren. Häufig falsch beantwortete Fragen kommen etwa dreimal so oft wie sichere. Sichere Fragen setzen aus, kommen aber spätestens nach einer festen Zahl von Runden wieder (bei 10 Fragen nach 9 Runden, bei 15 und 20 nach 6).</p>
+      <p>Es zählt nur der erste Versuch je Runde: richtig und „Doch richtig“ voll, teilweise halb, falsch, gelöst und übersprungen gar nicht. „Alle 30“ und „Fehler nochmals üben“ wählen wie bisher aus, ihre Ergebnisse fliessen aber in den Lernstand ein.</p>
+
       <p class="help-h">Tastatur</p>
       <p>Strg + Enter (Mac: Cmd + Enter) prüft die Antwort und geht danach weiter.</p>
 
@@ -505,6 +552,24 @@ input#suche:focus{border-color:var(--stbd);outline:none}
       <p>Bisherige Antworten werden ausgewertet. Nicht gestellte Fragen zählen nicht mit.</p>
       <button class="cta" id="btn-beenden-ja" type="button">Beenden und auswerten</button>
       <button class="ghost" type="button" data-schliessen>Weiter üben</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="sheet-reset" hidden>
+  <div class="sheet-scrim" data-schliessen></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-reset-titel">
+    <button class="sheet-grab" type="button" data-schliessen aria-label="Schliessen"></button>
+    <div class="sheet-head">
+      <div>
+        <p class="plate-label">Lernstand</p>
+        <h3 class="h-section" id="sheet-reset-titel">Lernstand wirklich löschen?</h3>
+      </div>
+    </div>
+    <div class="sheet-body">
+      <p>Alle gespeicherten Ergebnisse und Zählungen werden gelöscht. Das lässt sich nicht rückgängig machen. Danach werden alle Fragen wieder als neu behandelt.</p>
+      <button class="cta" type="button" data-schliessen>Abbrechen</button>
+      <button class="ghost danger scharf" id="btn-reset-ja" type="button">Ja, endgültig löschen</button>
     </div>
   </div>
 </div>
@@ -2371,6 +2436,74 @@ let groesse = (() => {
   return GROESSEN.includes(g) ? g : 10;
 })();
 
+/* ---------- Lernstand ----------
+   Pro Frage: n = Zahl der Runden, in denen sie gestellt wurde,
+   zuletzt = Rundennummer des letzten Stellens, verlauf = Punkte der
+   letzten fünf ersten Versuche (1 richtig, 0.5 teilweise, 0 sonst). */
+const LS_KEY = "seemupr.lernstand";
+const VERLAUF_MAX = 5;
+const FEHLER_FAKTOR = 3;   // Gewicht 1 (sicher) bis 4 (immer falsch), ergibt in der Praxis etwa 3× so häufig
+const PUNKTE = { richtig: 1, teilweise: 0.5, falsch: 0, geloest: 0, uebersprungen: 0 };
+
+function lernstandLeer() { return { v: 1, runden: 0, fragen: {} }; }
+let lernstand = (() => {
+  try {
+    const d = JSON.parse(speicher.lesen(LS_KEY));
+    if (d && d.v === 1 && d.fragen && typeof d.runden === "number") return d;
+  } catch {}
+  return lernstandLeer();
+})();
+function lernstandSpeichern() { speicher.schreiben(LS_KEY, JSON.stringify(lernstand)); }
+
+function stand(id) {
+  return lernstand.fragen[id] || { n: 0, zuletzt: null, verlauf: [] };
+}
+// Anteil richtig der letzten Versuche, null = noch nie gestellt
+function quote(id) {
+  const v = stand(id).verlauf;
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
+function klasse(id) {
+  const q = quote(id);
+  if (q === null) return "neu";
+  return q >= 0.8 ? "good" : q >= 0.4 ? "mid" : "bad";
+}
+function ersterVersuchVerbuchen(id, ausgang) {
+  const s = lernstand.fragen[id] || (lernstand.fragen[id] = { n: 0, zuletzt: null, verlauf: [] });
+  s.n++;
+  s.zuletzt = runde.nr;
+  s.verlauf.push(PUNKTE[ausgang] ?? 0);
+  if (s.verlauf.length > VERLAUF_MAX) s.verlauf.shift();
+  lernstandSpeichern();
+}
+
+// Gewichtete Auswahl für Runden mit 10, 15 oder 20 Fragen.
+// Priorität = Runden seit dem letzten Stellen × Gewicht (1 bis 4).
+// Nie gestellte und überfällige Fragen kommen immer zuerst.
+function maxPause(anzahl) { return 3 * Math.ceil(FRAGEN.length / anzahl); }
+function gewichteteAuswahl(anzahl) {
+  const jetzt = lernstand.runden + 1;
+  const grenze = maxPause(anzahl);
+  const prio = (f) => {
+    const s = stand(f.id);
+    if (s.zuletzt === null) return 1e9 + Math.random();
+    const pause = jetzt - s.zuletzt;
+    if (pause >= grenze) return 1e6 + pause + Math.random();
+    const q = quote(f.id);
+    const gewicht = 1 + FEHLER_FAKTOR * (1 - (q ?? 0));
+    return pause * gewicht * (0.9 + 0.2 * Math.random());
+  };
+  return FRAGEN.map((f) => [f.id, prio(f)])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, anzahl)
+    .map(([id]) => id);
+}
+function standardRunde() {
+  return groesse >= FRAGEN.length
+    ? mischen(FRAGEN.map((f) => f.id)).slice(0, groesse)
+    : gewichteteAuswahl(groesse);
+}
+
 /* ---------- Zustand ---------- */
 let runde = null;     // aktuelle Runde
 let aktuell = null;   // { id, hinweis, ergebnis, ausgang, abgeschlossen }
@@ -2387,7 +2520,10 @@ function mischen(arr) {
 
 function rundeStarten(ids) {
   const auswahl = mischen(ids);
+  lernstand.runden++;
+  lernstandSpeichern();
   runde = {
+    nr: lernstand.runden,
     ids: auswahl,
     queue: auswahl.slice(),
     gezeigt: 0,          // Zahl erstmals gestellter Fragen
@@ -2419,7 +2555,10 @@ function erledigt() {
 function verbuchen(ausgang) {
   const s = runde.st[aktuell.id];
   s.versuche++;
-  if (s.erst === null) { s.erst = ausgang; s.erstHinweis = aktuell.hinweis; }
+  if (s.erst === null) {
+    s.erst = ausgang; s.erstHinweis = aktuell.hinweis;
+    ersterVersuchVerbuchen(aktuell.id, ausgang);
+  }
   if (ausgang === "richtig") {
     s.final = "richtig";
     if (aktuell.nochmals) {
@@ -2447,7 +2586,7 @@ function kommtWieder() {
 }
 
 /* ---------- Ansichten ---------- */
-const SCREENS = ["start", "frage", "ergebnis", "liste"];
+const SCREENS = ["start", "frage", "ergebnis", "liste", "fortschritt"];
 let screenJetzt = "start";
 
 function zeige(name) {
@@ -2455,6 +2594,8 @@ function zeige(name) {
   for (const s of SCREENS) $("screen-" + s).hidden = s !== name;
   $("btn-zurueck").hidden = name === "start";
   $("btn-liste").hidden = name === "liste" || name === "frage";
+  $("btn-fortschritt").hidden = name === "fortschritt" || name === "frage";
+  if (name === "fortschritt") $("crumb").textContent = "Fortschritt";
   if (name === "start") $("crumb").textContent = `${FRAGEN.length} Fragen`;
   if (name === "liste") $("crumb").textContent = "Alle Fragen";
   if (name === "ergebnis") $("crumb").textContent = "Ergebnis";
@@ -2462,7 +2603,15 @@ function zeige(name) {
 }
 
 /* ---------- Start ---------- */
+function standZeileRendern() {
+  const z = { good: 0, mid: 0, bad: 0, neu: 0 };
+  for (const f of FRAGEN) z[klasse(f.id)]++;
+  const el = $("stand-zeile");
+  el.hidden = z.neu === FRAGEN.length;
+  el.innerHTML = `<b class="g">${z.good}</b> sicher · <b class="m">${z.mid}</b> teilweise · <b class="r">${z.bad}</b> unsicher · <b>${z.neu}</b> neu`;
+}
 function startRendern() {
+  standZeileRendern();
   const box = $("groesse-choices");
   box.innerHTML = "";
   for (const g of GROESSEN) {
@@ -2777,6 +2926,61 @@ function listeOeffnen() {
   listeRendern();
 }
 
+/* ---------- Fortschritt ---------- */
+function fortschrittRendern() {
+  const raster = $("fortschritt-raster");
+  raster.innerHTML = "";
+  let bearbeitet = 0, sicher = 0;
+  for (const f of FRAGEN) {
+    const s = stand(f.id);
+    const k = klasse(f.id);
+    if (k !== "neu") bearbeitet++;
+    if (k === "good") sicher++;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tile" + (k === "neu" ? "" : " " + k);
+    b.innerHTML = "<b></b><small></small>";
+    b.querySelector("b").textContent = String(f.nummer);
+    b.querySelector("small").textContent = k === "neu" ? "neu" : Math.round(quote(f.id) * 100) + " %";
+    b.title = `${f.frage}\n${s.n}× gestellt` + (k === "neu" ? "" : `, letzte ${s.verlauf.length}: ${Math.round(quote(f.id) * 100)} % richtig`);
+    b.addEventListener("click", () => loesungsPanel(f.id, false));
+    raster.appendChild(b);
+  }
+  $("fortschritt-lede").textContent = bearbeitet
+    ? `${bearbeitet} von ${FRAGEN.length} Fragen bearbeitet, davon ${sicher} sicher. ${lernstand.runden} Runden gespielt. Die Prozentzahl bezieht sich auf die letzten fünf ersten Versuche.`
+    : "Noch keine Frage bearbeitet.";
+}
+function fortschrittOeffnen() {
+  if (screenJetzt === "frage") { toast("Während der Runde nicht verfügbar"); return; }
+  vorListe = screenJetzt === "fortschritt" || screenJetzt === "liste" ? vorListe : screenJetzt;
+  zeige("fortschritt");
+  fortschrittRendern();
+}
+function lernstandAusgeben() {
+  const blob = new Blob([JSON.stringify(lernstand, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `seemupr-lernstand-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast("Lernstand ausgegeben");
+}
+function lernstandEinlesen(datei) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d || d.v !== 1 || typeof d.runden !== "number" || typeof d.fragen !== "object") throw 0;
+      lernstand = d;
+      lernstandSpeichern();
+      fortschrittRendern();
+      toast("Lernstand eingelesen");
+    } catch { toast("Die Datei enthält keinen gültigen Lernstand"); }
+  };
+  r.readAsText(datei);
+}
+
 /* ---------- Panels ---------- */
 let letzterFokus = null;
 
@@ -2860,7 +3064,23 @@ function toast(text) {
 }
 
 /* ---------- Ereignisse ---------- */
-$("btn-start").addEventListener("click", () => rundeStarten(mischen(FRAGEN.map((f) => f.id)).slice(0, groesse)));
+$("btn-start").addEventListener("click", () => rundeStarten(standardRunde()));
+$("btn-fortschritt").addEventListener("click", fortschrittOeffnen);
+$("btn-export").addEventListener("click", lernstandAusgeben);
+$("btn-import").addEventListener("click", () => $("import-datei").click());
+$("import-datei").addEventListener("change", (e) => {
+  const d = e.target.files && e.target.files[0];
+  if (d) lernstandEinlesen(d);
+  e.target.value = "";
+});
+$("btn-reset").addEventListener("click", () => panelOeffnen("sheet-reset"));
+$("btn-reset-ja").addEventListener("click", () => {
+  lernstand = lernstandLeer();
+  lernstandSpeichern();
+  $("sheet-reset").hidden = true;
+  fortschrittRendern();
+  toast("Lernstand gelöscht");
+});
 $("btn-liste").addEventListener("click", listeOeffnen);
 $("btn-liste-2").addEventListener("click", listeOeffnen);
 $("btn-info").addEventListener("click", () => panelOeffnen("sheet-info"));
@@ -2877,12 +3097,13 @@ $("btn-nochmals").addEventListener("click", nochmalsUmschalten);
 $("btn-weiter").addEventListener("click", weiter);
 
 $("btn-fehler").addEventListener("click", () => rundeStarten(runde.fehler));
-$("btn-neu").addEventListener("click", () => rundeStarten(mischen(FRAGEN.map((f) => f.id)).slice(0, groesse)));
+$("btn-neu").addEventListener("click", () => rundeStarten(standardRunde()));
 $("btn-zum-start").addEventListener("click", () => { zeige("start"); startRendern(); });
 
 $("btn-zurueck").addEventListener("click", () => {
   if (screenJetzt === "frage") return panelOeffnen("sheet-beenden");
-  if (screenJetzt === "liste") {
+  if (screenJetzt === "liste" && vorListe === "fortschritt") { zeige("fortschritt"); return fortschrittRendern(); }
+  if (screenJetzt === "liste" || screenJetzt === "fortschritt") {
     if (vorListe === "ergebnis" && runde) return zeige("ergebnis");
     zeige("start"); return startRendern();
   }
