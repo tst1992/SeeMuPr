@@ -1,6 +1,6 @@
 # Seerecht Muster Prüfung
 
-Trainer für 30 Musterprüfungsfragen im Fach **Schifffahrtsrecht** des
+Trainer für 31 Musterprüfungsfragen im Fach **Schifffahrtsrecht** des
 Sportseeschifferscheins: KVR, SeeSchStrO, Schiffspapiere und SUG. Die Fragen
 kommen in zufälliger Reihenfolge, die Antwort wird frei formuliert und gegen
 feste Schlüsselelemente geprüft. Danach erscheint immer die Musterlösung.
@@ -34,7 +34,7 @@ im Flugmodus.
 ## Örtlich ausprobieren
 
 `index.html` doppelklicken. Die Datei ist in sich geschlossen: Stylesheet,
-Programm und alle 30 Fragen stecken darin. Installation und Offlinebetrieb
+Programm und alle 31 Fragen stecken darin. Installation und Offlinebetrieb
 funktionieren erst über eine Webadresse (GitHub Pages oder z. B.
 `python3 -m http.server 8080` in diesem Ordner).
 
@@ -83,10 +83,13 @@ Die Fragen stehen in `index.html` im Block
     Toleranz · `#100-150` Zahl im Bereich
   - Wortfolgen: Wörter in dieser Reihenfolge, bis zu zwei Wörter dazwischen
   - Signalfolgen wie „kurz, lang, kurz“ werden trotz Kommas als Folge erkannt.
+- **`ausschluss`** (optional): Wortfolgen, die das Element ungültig machen,
+  wenn sie irgendwo in der Antwort stehen. Beispiel Frage 31: „lang kurz
+  kurz“ verhindert, dass das falsche Nebelsignal als „langer Ton“ zählt.
 - **`mindestanzahl`**: so viele Elemente braucht „Richtig“ (zusätzlich zu allen
   Pflichtelementen). „Teilweise“ ab der Hälfte davon.
 
-Nach einer Änderung in `sw.js` die Zeile `const BESTAND = "seemupr-v5";`
+Nach einer Änderung in `sw.js` die Zeile `const BESTAND = "seemupr-v6";`
 hochzählen (`v2`, `v3` …), damit installierte Apps die neue Fassung laden.
 Nach einer Änderung an `index.html` ebenfalls.
 
@@ -123,10 +126,10 @@ Runden mit 10, 15 oder 20 Fragen wählen gewichtet aus:
 - Danach gilt: Priorität = Runden seit dem letzten Stellen × Gewicht. Das
   Gewicht reicht von 1 (zuletzt immer richtig) bis 4 (immer falsch). In der
   Praxis kommen schwache Fragen dadurch etwa dreimal so oft wie sichere.
-- Keine Frage setzt länger aus als 3 × (30 ÷ Rundengrösse, aufgerundet)
-  Runden: bei 10 Fragen 9 Runden, bei 15 und 20 Fragen 6 Runden.
+- Keine Frage setzt länger aus als 3 × (31 ÷ Rundengrösse, aufgerundet)
+  Runden: bei 10 Fragen 12 Runden, bei 15 Fragen 9, bei 20 Fragen 6.
 
-„Alle 30“ und „Fehler nochmals üben“ wählen wie bisher, ihre Ergebnisse
+„Alle 31“ und „Fehler nochmals üben“ wählen wie bisher, ihre Ergebnisse
 zählen aber für den Lernstand.
 
 Das Balkensymbol oben rechts öffnet die Ansicht **Fortschritt**: eine Kachel
@@ -143,7 +146,8 @@ Eigene Sammlung von Musterprüfungsfragen zum Schifffahrtsrecht. Fragen und
 Musterlösungen sind sprachlich vereinheitlicht; zusammengehörige Teilfragen
 (Unterelbe im Nebel, Ankerlieger, Grundsitzer 13,5 m) stehen als eine Frage.
 Frage 27 enthält eine Anmerkung zur Abgrenzung von KVR-Regel 30 b und
-SeeSchStrO Anlage II Nr. 11.
+SeeSchStrO Anlage II Nr. 11, Frage 31 eine zum Nebelsignal eines
+Segelfahrzeugs unter Motor (KVR-Regel 35 a).
 
 Vor der Prüfung mit den aktuellen Fassungen von KVR und SeeSchStrO abgleichen.
 

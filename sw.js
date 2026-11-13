@@ -7,7 +7,7 @@
    (GitHub Pages) läuft.
    ========================================================================== */
 
-const BESTAND = "seemupr-v5";
+const BESTAND = "seemupr-v6";
 
 const DATEIEN = [
   "./",
