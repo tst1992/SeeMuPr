@@ -718,10 +718,16 @@ input#suche:focus{border-color:var(--stbd);outline:none}
     "nummer": 3,
     "frage": "Welche Folgen können für einen Fahrzeugführer unter Alkoholeinfluss nach SeeSchStrO entstehen? Genaue Formulierung erforderlich!",
     "loesung": [
-      "SeeSchStrO § 3 (4): Wer 0,25 mg/l oder mehr Alkohol in der Atemluft oder 0,5 Promille oder mehr Alkohol im Blut oder eine Alkoholmenge im Körper hat, die zu einer solchen Atem- oder Blutalkoholkonzentration führt, darf ein Fahrzeug nicht führen oder als Mitglied der Schiffsbesatzung eine andere Tätigkeit des Brücken-, Decks- oder Maschinendienstes nicht ausüben. Dies gilt für das Fahren mit einem Wassermotorrad oder einem Kite- und Segelsurfbrett entsprechend."
+      "Wer 0,25mg/l oder mehr Alkohol in der Atemluft",
+      "Wer 0,5 Promille oder mehr Alkohol im Blut",
+      "Eine Alkoholmenge im Körper die zu einer solchen Konzentration führt",
+      "Oder 3,5ng/ml oder mehr THC im Blutserum hat",
+      "Oder unter der Wirkung eines anderen berauschenden Mittels steht",
+      "Darf ein Fahrzeug nicht führen oder als Mitglied der Schiffsbesatzung eine andere Tätigkeit des Brücken-, Decks- oder Maschinendienstes nicht ausüben.",
+      "Dies gilt für das Fahren mit einem Wassermotorrad oder einem Kite- und Segelsurfbrett entsprechend."
     ],
-    "hinweis": "Zwei Grenzwerte, ein Verbot für Führer und Besatzung – und für welche Sportgeräte gilt es auch?",
-    "mindestanzahl": 5,
+    "hinweis": "Zwei Alkohol-Grenzwerte, ein Cannabis-Grenzwert, andere Drogen – ein Verbot für Führer und Besatzung – und für welche Sportgeräte gilt es auch?",
+    "mindestanzahl": 6,
     "elemente": [
       {
         "label": "0,25 mg/l Atemalkohol",
@@ -747,6 +753,26 @@ input#suche:focus{border-color:var(--stbd);outline:none}
         "treffer": [
           "körper",
           "alkoholmenge"
+        ]
+      },
+      {
+        "label": "3,5 ng/ml THC im Blutserum",
+        "pflicht": true,
+        "treffer": [
+          "thc",
+          "cannabis",
+          "blutserum",
+          "=ng"
+        ]
+      },
+      {
+        "label": "Wirkung eines anderen berauschenden Mittels",
+        "treffer": [
+          "berauschend",
+          "drogen",
+          "rauschmittel",
+          "betäubungsmittel",
+          "rausch"
         ]
       },
       {
@@ -783,7 +809,8 @@ input#suche:focus{border-color:var(--stbd);outline:none}
           "surf"
         ]
       }
-    ]
+    ],
+    "anmerkung": "SeeSchStrO § 3 (4), Fassung seit 01.10.2024. Ausnahme: Das Verbot gilt nicht, wenn die Substanz aus der bestimmungsgemäßen Einnahme eines verschriebenen Arzneimittels stammt."
   },
   {
     "id": "f04",
